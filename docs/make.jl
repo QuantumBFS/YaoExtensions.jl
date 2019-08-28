@@ -6,12 +6,12 @@ makedocs(;
     pages=[
         "Home" => "index.md",
     ],
-    repo="https://github.com/GiggleLiu/YaoExtensions.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/QuantumBFS/YaoExtensions.jl/blob/{commit}{path}#L{line}",
     sitename="YaoExtensions.jl",
     authors="JinGuo Liu",
     assets=String[],
 )
 
 deploydocs(;
-    repo="github.com/GiggleLiu/YaoExtensions.jl",
+    repo="github.com/QuantumBFS/YaoExtensions.jl",
 )
