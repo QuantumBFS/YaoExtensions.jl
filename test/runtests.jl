@@ -38,3 +38,7 @@ end
 @testset "hamiltonians" begin
     include("hamiltonians.jl")
 end
+
+@testset "Mod" begin
+    include("Mod.jl")
+end

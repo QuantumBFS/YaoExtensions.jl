@@ -4,6 +4,18 @@
 export Mod, KMod
 
 """
+    mod_inverse(x::Int, N::Int) -> Int
+
+Return `y` that `(x*y)%N == 1`, notice the `(x*y)%N` operations in Z* forms a group and this is the definition of inverse.
+"""
+function mod_inverse(x::Int, N::Int)
+    for i=1:N
+        (x*i)%N == 1 && return i
+    end
+    throw(ArgumentError("Can not find the inverse, $x is probably not in Z*($N)!"))
+end
+
+"""
     Mod{N} <: PrimitiveBlock{N}
 
 calculates `mod(a*x, L)`, notice `gcd(a, L)` should be 1.
@@ -38,7 +50,7 @@ function Yao.mat(::Type{T}, m::Mod{N}) where {T, N}
     PermMatrix(perm, ones(T, 1<<N))
 end
 
-Base.adjoint(m::Mod{N}) where N = Mod{N}(NumberTheory.mod_inverse(m.a, m.L), m.L)
+Base.adjoint(m::Mod{N}) where N = Mod{N}(mod_inverse(m.a, m.L), m.L)
 Yao.print_block(io::IO, m::Mod{N}) where N = print(io, "Mod{$N}: $(m.a)*x % $(m.L)")
 
 Yao.isunitary(::Mod) = true
@@ -97,7 +109,7 @@ function Yao.mat(::Type{T}, m::KMod{N, K}) where {T, N, K}
     PermMatrix(perm, ones(T, 1<<N))
 end
 
-Base.adjoint(m::KMod{N, K}) where {N, K} = KMod{N, K}(NumberTheory.mod_inverse(m.a, m.L), m.L)
+Base.adjoint(m::KMod{N, K}) where {N, K} = KMod{N, K}(mod_inverse(m.a, m.L), m.L)
 Yao.print_block(io::IO, m::KMod{N, K}) where {N, K} = print(io, "Mod{$N, $K}: $(m.a)^k*x % $(m.L)")
 
 Yao.isunitary(::KMod) = true
