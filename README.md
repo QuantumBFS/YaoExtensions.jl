@@ -1,7 +1,7 @@
 # YaoExtensions
 
-[![Build Status](https://travis-ci.com/GiggleLiu/YaoExtensions.jl.svg?branch=master)](https://travis-ci.com/GiggleLiu/YaoExtensions.jl)
-[![Codecov](https://codecov.io/gh/GiggleLiu/YaoExtensions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/GiggleLiu/YaoExtensions.jl)
+[![Build Status](https://travis-ci.com/QuantumBFS/YaoExtensions.jl.svg?branch=master)](https://travis-ci.com/QuantumBFS/YaoExtensions.jl)
+[![Codecov](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl)
 
 Extensions for Yao.
 
