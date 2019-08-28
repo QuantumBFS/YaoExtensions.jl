@@ -134,7 +134,7 @@ end
     gd = gradient(c)
     @test gradient(c) == gd
     @test isapprox(nd, ed, atol=1e-4)
-    @test isapprox(ed, gd, atol=1e-5)
+    @test isapprox(ed, gd, atol=1e-4)
 end
 
 @testset "stat" begin
