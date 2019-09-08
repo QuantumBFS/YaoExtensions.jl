@@ -42,3 +42,19 @@ end
 @testset "Mod" begin
     include("Mod.jl")
 end
+
+@testset "pauli_strings" begin
+    include("pauli_strings.jl")
+end
+
+@testset "supremacy_circuit" begin
+    include("supremacy_circuit.jl")
+end
+
+@testset "reflect_gate" begin
+    include("reflect_gate.jl")
+end
+
+@testset "math_gate" begin
+    include("math_gate.jl")
+end

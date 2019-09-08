@@ -18,26 +18,33 @@ pair_ring(n::Int) = [i=>mod(i, n)+1 for i=1:n]
 
 Pair square.
 """
-function pair_square(m::Int, n::Int)
-    nsite = m*n
-    res = Vector{Pair{Int, Int}}(undef, 2*nsite)
+function pair_square(m::Int, n::Int; periodic=false)
+    res = Vector{Pair{Int, Int}}(undef, (m-!periodic)*n+m*(n-!periodic))
     li = LinearIndices((m, n))
     k = 1
     for i = 1:2:m, j=1:n
-        res[k] = li[i, j] => li[i%m+1, j]
-        k+=1
+        if periodic || i<m
+            res[k] = li[i, j] => li[i%m+1, j]
+            k+=1
+        end
     end
     for i = 2:2:m, j=1:n
-        res[k] = li[i, j] => li[i%m+1, j]
-        k+=1
+        if periodic || i<m
+            res[k] = li[i, j] => li[i%m+1, j]
+            k+=1
+        end
     end
     for i = 1:m, j=1:2:n
-        res[k] = li[i, j] => li[i, j%n+1]
-        k+=1
+        if periodic || j<n
+            res[k] = li[i, j] => li[i, j%n+1]
+            k+=1
+        end
     end
     for i = 1:m, j=2:2:n
-        res[k] = li[i, j] => li[i, j%n+1]
-        k+=1
+        if periodic || j<n
+            res[k] = li[i, j] => li[i, j%n+1]
+            k+=1
+        end
     end
     res
 end

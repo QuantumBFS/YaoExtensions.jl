@@ -3,7 +3,13 @@ using Yao, YaoExtensions
 
 @testset "pairs geometries" begin
     @test pair_ring(3) == [1=>2,2=>3,3=>1]
-    ps = pair_square(2, 2)
+    ps = pair_square(2, 2; periodic=false)
+    @test length(ps) == 4
+    for item in [1=>2, 3=>4, 1=>3, 2=>4]
+        @test item in ps
+    end
+
+    ps = pair_square(2, 2; periodic=true)
     @test length(ps) == 8
     for item in [1=>2, 3=>4, 2=>1, 4=>3, 1=>3, 2=>4, 3=>1, 4=>2]
         @test item in ps
