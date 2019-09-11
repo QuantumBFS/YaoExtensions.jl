@@ -34,5 +34,3 @@ singlet_block() = singlet_block(2,1,2)
 
 """Identity block"""
 eyeblock(nbits::Int) = put(nbits, 1=>I2)
-
-Base.Matrix(ρ::DensityMatrix{1}) = dropdims(state(ρ), dims=3)
