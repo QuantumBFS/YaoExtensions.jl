@@ -1,5 +1,7 @@
 # YaoExtensions
 
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://QuantumBFS.github.io/YaoExtensions.jl/stable)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://QuantumBFS.github.io/YaoExtensions.jl/dev)
 [![Build Status](https://travis-ci.com/QuantumBFS/YaoExtensions.jl.svg?branch=master)](https://travis-ci.com/QuantumBFS/YaoExtensions.jl)
 [![Codecov](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl)
 
@@ -9,6 +11,8 @@ Extensions for Yao.
 #### Easy constructions
 * variational_circuit(n): construct a random parametrized circuit.
 * heisenberg(n): construct a heisenberg hamiltonian.
+* rand_supremacy2d(nx, ny, depth): construct a quantum supremacy circuit.
+* QFTCircuit(n): construct a quantum fourier transformation circuit.
 
 #### Block extensions
 * Diff: differentiable node. See [example/port_zygote](example/port_zygote.jl) as a using example.

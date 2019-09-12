@@ -23,9 +23,9 @@ version = "0.5.6"
 
 [[BitBasis]]
 deps = ["LinearAlgebra", "LuxurySparse", "StaticArrays"]
-git-tree-sha1 = "1d6ac9151f1bed9d0690bff1c398153a0fe874e5"
+git-tree-sha1 = "166e82590004c34afcc985ea9b633ebd6ec0292c"
 uuid = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"
-version = "0.5.1"
+version = "0.6.0"
 
 [[CSTParser]]
 deps = ["Tokenize"]
@@ -94,15 +94,15 @@ version = "1.5.1"
 
 [[FFTW]]
 deps = ["AbstractFFTs", "BinaryProvider", "Conda", "Libdl", "LinearAlgebra", "Reexport", "Test"]
-git-tree-sha1 = "e1a479d3c972f20c9a70563eec740bbfc786f515"
+git-tree-sha1 = "03f8776fbdae28c20c0d1d2ae4e090cd1dfcd247"
 uuid = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
-version = "0.3.0"
+version = "1.0.0"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "8fba6ddaf66b45dec830233cea0aae43eb1261ad"
+git-tree-sha1 = "4c707c87ddd3199fc5624d5c98b2c706e4d00675"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.6.4"
+version = "0.7.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -155,10 +155,9 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[Missings]]
-deps = ["SparseArrays", "Test"]
-git-tree-sha1 = "f0719736664b4358aa9ec173077d4285775f8007"
+git-tree-sha1 = "29858ce6c8ae629cf2d733bffa329619a1c843d0"
 uuid = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
@@ -171,12 +170,12 @@ version = "1.1.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "db2b35dedab3c0e46dc15996d170af07a5ab91c9"
+git-tree-sha1 = "ef0af6c8601db18c282d092ccbd2f01f3f0cd70b"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.6"
+version = "0.3.7"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Printf]]
@@ -232,10 +231,10 @@ deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SpecialFunctions]]
-deps = ["BinDeps", "BinaryProvider", "Libdl", "Test"]
-git-tree-sha1 = "0b45dc2e45ed77f445617b99ff2adf0f5b0f23ea"
+deps = ["BinDeps", "BinaryProvider", "Libdl"]
+git-tree-sha1 = "3bdd374b6fd78faf0119b8c5d538788dbf910c6e"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "0.7.2"
+version = "0.8.0"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
@@ -295,30 +294,30 @@ version = "1.1.3"
 
 [[Yao]]
 deps = ["BitBasis", "Reexport", "YaoArrayRegister", "YaoBase", "YaoBlocks"]
-git-tree-sha1 = "640b0fbe3aa379e6a93b56c67fe669d65ee82e95"
+git-tree-sha1 = "c429ffbd914f6c8c5d64c039d95eed8f33d85c2a"
 uuid = "5872b779-8223-5990-8dd0-5abbb0748c8c"
-version = "0.4.1"
+version = "0.5.1"
 
 [[YaoArrayRegister]]
 deps = ["BitBasis", "LinearAlgebra", "LuxurySparse", "Random", "StaticArrays", "StatsBase", "TupleTools", "YaoBase"]
-git-tree-sha1 = "9492279076d8deb217be38c6202b9c5cf74fe6c2"
+git-tree-sha1 = "1e38066282e3994b532b1f9d03d26dbc275bc1fe"
 uuid = "e600142f-9330-5003-8abb-0ebd767abc51"
-version = "0.3.10"
+version = "0.4.1"
 
 [[YaoBase]]
 deps = ["BitBasis", "LegibleLambdas", "LinearAlgebra", "LuxurySparse", "MLStyle", "MacroTools", "Random", "SparseArrays", "Test", "TupleTools"]
-git-tree-sha1 = "b3d7e3d3dc42968bcc3a83e0f1c661b466b8cd47"
+git-tree-sha1 = "9ca332825cb09554e96a2108914b4fb5ff4a2971"
 uuid = "a8f54c17-34bc-5a9d-b050-f522fe3f755f"
-version = "0.10.0"
+version = "0.11.1"
 
 [[YaoBlocks]]
 deps = ["BitBasis", "CacheServers", "ExponentialUtilities", "LegibleLambdas", "LinearAlgebra", "LuxurySparse", "MLStyle", "Random", "SimpleTraits", "SparseArrays", "StaticArrays", "StatsBase", "YaoArrayRegister", "YaoBase"]
-git-tree-sha1 = "efed606a2dcc8ebc27d02d34404c5c9968eba9a6"
+git-tree-sha1 = "b0ddddc7ca44ec9c127ff771e47e96df78e610a6"
 uuid = "418bc28f-b43b-5e0b-a6e7-61bbc1a2c1df"
-version = "0.5.0"
+version = "0.6.0"
 
 [[YaoExtensions]]
-deps = ["BitBasis", "FFTW", "LuxurySparse", "StatsBase", "SymEngine", "Yao", "YaoBlocks"]
+deps = ["BitBasis", "FFTW", "LegibleLambdas", "LuxurySparse", "StaticArrays", "StatsBase", "SymEngine", "Yao", "YaoBlocks"]
 path = "/home/leo/.julia/dev/YaoExtensions"
 uuid = "7a06699c-c960-11e9-3c98-9f78548b5f0f"
 version = "0.1.0"
