@@ -1,4 +1,5 @@
 [deps]
+BitBasis = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 YaoArrayRegister = "e600142f-9330-5003-8abb-0ebd767abc51"
