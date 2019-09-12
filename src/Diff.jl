@@ -1,4 +1,5 @@
-export Rotor, generator, Diff, backward!, gradient, CPhaseGate, DiffBlock
+export Rotor, generator, Diff, backward!, classical_autodiff!, CPhaseGate, DiffBlock
+export dispatch_to_diff!, parameters_of_diff
 import Yao: expect, content, chcontent, mat, apply!
 using StatsBase
 
@@ -24,8 +25,7 @@ Mark a block as quantum differentiable.
 """
 mutable struct Diff{GT, N, T} <: TagBlock{GT, N}
     block::GT
-    grad::T
-    Diff(block::DiffBlock{N, T}) where {N, T} = new{typeof(block), N, T}(block, T(0))
+    Diff(block::DiffBlock{N, T}) where {N, T} = new{typeof(block), N, T}(block)
 end
 content(cb::Diff) = cb.block
 chcontent(cb::Diff, blk::DiffBlock) = Diff(blk)
@@ -97,7 +97,7 @@ Numeric differentiation.
 """
 @inline function numdiff(loss, diffblock::Diff; δ::Real=1e-2)
     r1, r2 = _perturb(loss, diffblock, δ)
-    diffblock.grad = (r2 - r1)/2δ
+    (r2-r1)/2δ
 end
 
 """
@@ -107,7 +107,6 @@ Operator differentiation.
 """
 @inline function opdiff(psifunc, diffblock::Diff, op::AbstractBlock)
     r1, r2 = _perturb(()->expect(op, psifunc()) |> real, diffblock, π/2)
-    #diffblock.grad = (r2 - r1)/2
     (r2 - r1)/2
 end
 
@@ -160,60 +159,68 @@ Differentiation for statistic functionals.
 """
 @inline function statdiff(probfunc, diffblock::Diff, stat::StatFunctional{2}; initial::AbstractVector=probfunc())
     r1, r2 = _perturb(()->expect(stat, probfunc(), initial), diffblock, π/2)
-    diffblock.grad = (r2 - r1)*ndims(stat)/2
+    (r2 - r1)*ndims(stat)/2
 end
 @inline function statdiff(probfunc, diffblock::Diff, stat::StatFunctional{1})
     r1, r2 = _perturb(()->expect(stat, probfunc()), diffblock, π/2)
-    diffblock.grad = (r2 - r1)*ndims(stat)/2
+    (r2 - r1)*ndims(stat)/2
 end
 
 """
-    backward!((ψ, ∂L/∂ψ*), circuit::AbstractBlock) -> AbstractRegister
+    backward!((ψ, ∂L/∂ψ*), circuit::AbstractBlock, collector) -> AbstractRegister
 
 back propagate and calculate the gradient ∂L/∂θ = 2*Re(∂L/∂ψ*⋅∂ψ*/∂θ), given ∂L/∂ψ*.
 `ψ` is the output register, ∂L/∂ψ* should also be register type.
 
 Note: gradients are stored in `Diff` blocks, it can be access by either `diffblock.grad` or `gradient(circuit)`.
+Note2: now `backward!` returns the inversed gradient!
 """
-function backward!(state, block::AbstractBlock)
-    out, outδ = state
+function backward!(st, block::AbstractBlock, collector)
+    out, outδ = st
     adjblock = block'
-    backward_params!((out, outδ), block)
+    backward_params!((out, outδ), block, collector)
     in = apply!(out, adjblock)
     inδ = apply!(outδ, adjblock)
     return (in, inδ)
 end
 
-function backward!(state, circuit::Union{ChainBlock, Concentrator})
+function backward!(st, circuit::Union{ChainBlock, Concentrator}, collector)
     for blk in Base.Iterators.reverse(subblocks(circuit))
-        state = backward!(state, blk)
+        st = backward!(st, blk, collector)
     end
-    return state
+    return st
 end
 
-backward!(state, block::Measure) = throw(MethodError(backward!, (state, block)))
+backward!(st, block::Measure, collector) = throw(MethodError(backward!, (st, block, collector)))
 
-backward_params!(state, block::AbstractBlock) = nothing
-function backward_params!(state, block::Diff{<:DiffBlock})
-    in, outδ = state
+backward_params!(st, block::AbstractBlock, collector) = nothing
+function backward_params!(st, block::Diff{<:DiffBlock}, collector)
+    in, outδ = st
     Σ = generator(content(block))
-    block.grad = -statevec(in |> Σ)' * statevec(outδ) |> imag
+    g = dropdims(sum(conj.(statevec(in |> Σ)) .* statevec(outδ), dims=1), dims=1)
+    pushfirst!(collector, -g |> imag)
     in |> Σ
     nothing
 end
 
-"""
-    gradient(circuit::AbstractBlock, mode::Symbol=:ANY) -> Vector
-
-collect all gradients in a circuit, mode can be :BP/:QC/:ANY, they will collect `grad` from Diff respectively.
-"""
-gradient(circuit::AbstractBlock) = gradient!(circuit, parameters_eltype(circuit)[])
-
-function gradient!(circuit::AbstractBlock, grad)
-    for block in subblocks(circuit)
-        gradient!(block, grad)
-    end
-    grad
+function classical_autodiff!(circuit::AbstractBlock, out::ArrayReg, adjout::ArrayReg; output_eltype=Any)
+    collector = output_eltype[]
+    in, inδ = backward!((out, adjout), circuit, collector)
+    return 2*inδ, collector
 end
 
-gradient!(circuit::Diff, grad) = append!(grad, circuit.grad)
+dispatch_to_diff!(c::AbstractBlock, params) = dispatch_to_diff!(nothing, c, params)
+function dispatch_to_diff!(f,c::AbstractBlock, params)
+    dis = YaoBlocks.Dispatcher(params)
+    postwalk(c) do blk
+        blk isa Diff && dispatch!(f,blk, dis)
+    end
+end
+
+function parameters_of_diff!(out, c::AbstractBlock)
+    postwalk(c) do blk
+        blk isa Diff && parameters!(out, blk)
+    end
+    return out
+end
+parameters_of_diff(c::AbstractBlock) = parameters_of_diff!(Float64[], c)

@@ -59,8 +59,8 @@ end
     # back propagation
     ψ = copy(reg) |> c
     δ = copy(ψ) |> op
-    backward!((ψ, δ), c)
-    bd = gradient(c)
+    bd = Float64[]
+    backward!((ψ, δ), c, bd)
 
     # get num gradient
     nd = numdiff.(loss1z, dbs)

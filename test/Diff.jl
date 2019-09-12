@@ -6,19 +6,20 @@ using LinearAlgebra, Test, Random
     reg = rand_state(4)
     block = put(4, 2=>rot(X, 0.3))
     df = Diff(block)
-    @test df.grad == 0
     @test nqubits(df) == 4
 
     df2 = Diff(rot(CNOT, 0.3))
-    @test df2.grad == 0
     @test nqubits(df2) == 2
-    @test_throws MethodError backward!((reg, reg), Measure(4))
+    @test_throws MethodError backward!((reg, reg), Measure(4), Any[])
+    df3 = chain(put(2,2=>Rx(0.3)), Diff(rot(CNOT, 0.3)))
+    dispatch_to_diff!(df3, 1.0)
+    @test parameters(df3) == [0.3,1.0]
+    @test parameters_of_diff(df3) == [1.0]
 end
 
 @testset "Qi diff" begin
     reg = rand_state(4)
     df2 = Diff(rot(CNOT, 0.3))
-    @test df2.grad == 0
     @test nqubits(df2) == 2
 
     @test df2' isa Diff
@@ -76,31 +77,39 @@ end
     @test mat(cad) == mat(c)'
 
     circuit = chain(4, repeat(4, H, 1:4), put(4, 3=>Rz(0.5)) |> autodiff(:BP), control(4, 2, 1=>shift(0.4)) |> autodiff(:BP), control(2, 1=>X), put(4, 4=>Ry(0.2)) |> autodiff(:BP))
-    op = put(4, 3=>Y)
+    op = repeat(4, X, 1:4)
     θ = [0.9, 0.2, 0.3]
     dispatch!(circuit, θ)
     loss! = loss_expect!(circuit, op)
-    ψ0 = rand_state(4)
-    ψ = copy(ψ0) |> circuit
+    for ψ0 in [rand_state(4), rand_state(4, nbatch=10)]
+        ψ = copy(ψ0) |> circuit
 
-    # get gradient
-    δ = copy(ψ) |> op
-    in, inδ = backward!((ψ, δ), circuit)
-    @test in ≈ ψ0
-    g1 = gradient(circuit)
+        # get gradient
+        δ = copy(ψ) |> op
+        g1 = Any[]
+        in, inδ = backward!((copy(ψ), copy(δ)), circuit, g1)
+        @test in ≈ ψ0
 
-    g2 = zero(θ)
-    η = 1e-5
-    for i in 1:length(θ)
-        θ1 = copy(θ)
-        θ2 = copy(θ)
-        θ1[i] -= 0.5η
-        θ2[i] += 0.5η
-        g2[i] = (loss!(copy(ψ0), θ2) - loss!(copy(ψ0), θ1))/η |> real
+        dispatch!(circuit, θ)
+        inδ_, g1_ = classical_autodiff!(circuit, copy(ψ), copy(δ); output_eltype=Any)
+        @test isapprox(inδ.state, inδ_.state/2, atol=1e-5)
+        @test all(isapprox.(g1, g1_, atol=1e-5))
+
+        dispatch!(circuit, θ)
+        g2 = Vector{Any}(undef, length(θ))
+        η = 1e-5
+        for i in 1:length(θ)
+            θ1 = copy(θ)
+            θ2 = copy(θ)
+            θ1[i] -= 0.5η
+            θ2[i] += 0.5η
+            g2[i] = (loss!(copy(ψ0), θ2) - loss!(copy(ψ0), θ1))/η |> real
+        end
+        g3 = opdiff.(() -> copy(ψ0) |> circuit, collect_blocks(Diff, circuit), Ref(op))
+
+        @test isapprox.(g1, g2, atol=1e-5) |> all
+        @test isapprox.(g2, g3, atol=1e-5) |> all
     end
-    g3 = opdiff.(() -> copy(ψ0) |> circuit, collect_blocks(Diff, circuit), Ref(op))
-    @test isapprox.(g1, g2, atol=1e-5) |> all
-    @test isapprox.(g2, g3, atol=1e-5) |> all
 end
 
 @testset "constructor" begin
@@ -131,10 +140,13 @@ end
     loss1z() = expect(kron(4, 1=>Z, 2=>X), copy(reg) |> c) |> real  # return loss please
     nd = numdiff.(loss1z, dbs)
     ed = opdiff.(()->copy(reg) |> c, dbs, Ref(kron(4, 1=>Z, 2=>X)))
-    gd = gradient(c)
-    @test gradient(c) == gd
     @test isapprox(nd, ed, atol=1e-4)
-    @test isapprox(ed, gd, atol=1e-4)
+
+    # the batched version
+    reg = rand_state(4, nbatch=10)
+    ed2 = opdiff.(()->copy(reg) |> c, dbs, Ref(kron(4, 1=>Z, 2=>X)))
+    nd2 = numdiff.(loss1z, dbs)
+    @test isapprox(nd, ed, atol=1e-4)
 end
 
 @testset "stat" begin
