@@ -12,7 +12,6 @@ include("Miscellaneous.jl")
 
 # new block types
 include("sequence.jl")
-include("Diff.jl")
 include("TrivilGate.jl")
 include("Bag.jl")
 include("Mod.jl")

@@ -3,33 +3,22 @@ export dispatch_to_diff!, parameters_of_diff
 import Yao: expect, content, chcontent, mat, apply!
 using StatsBase
 
+using Yao
+
 ############# General Rotor ############
-const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate{<:Any, T}}}
-const CphaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
-const DiffBlock{N, T} = Union{Rotor{N, T}, CphaseGate{N, T}}
-"""
-    generator(rot::Rotor) -> AbstractBlock
-
-Return the generator of rotation block.
-"""
-generator(rot::RotationGate) = rot.block
-generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
-generator(c::CphaseGate{N}) where N = ControlBlock{N}(c.ctrl_locs, c.ctrl_config, Z, c.locs)
-
 #################### The Basic Diff #################
 """
-    Diff{GT, N, T} <: TagBlock{GT, N}
+    Diff{GT, N} <: TagBlock{GT, N}
     Diff(block) -> Diff
 
 Mark a block as quantum differentiable.
 """
-mutable struct Diff{GT, N, T} <: TagBlock{GT, N}
+struct Diff{GT, N} <: TagBlock{GT, N}
     block::GT
-    Diff(block::DiffBlock{N, T}) where {N, T} = new{typeof(block), N, T}(block)
+    Diff(block::AbstractBlock{N}) where {N} = new{typeof(block), N}(block)
 end
 content(cb::Diff) = cb.block
-chcontent(cb::Diff, blk::DiffBlock) = Diff(blk)
-
+chcontent(cb::Diff, blk::AbstractBlock) = Diff(blk)
 YaoBlocks.PropertyTrait(::Diff) = YaoBlocks.PreserveAll()
 
 apply!(reg::AbstractRegister, db::Diff) = apply!(reg, content(db))
@@ -55,8 +44,6 @@ autodiff(mode::Symbol) = block->autodiff(mode, block)
 autodiff(mode::Symbol, block::AbstractBlock) = autodiff(Val(mode), block)
 
 # for BP
-autodiff(::Val{:BP}, block::DiffBlock) = Diff(block)
-autodiff(::Val{:BP}, block::AbstractBlock) = block
 # Sequential, Roller and ChainBlock can propagate.
 function autodiff(mode::Val{:BP}, blk::Union{ChainBlock, Sequential})
     chsubblocks(blk, autodiff.(mode, subblocks(blk)))
@@ -164,43 +151,6 @@ end
 @inline function statdiff(probfunc, diffblock::Diff, stat::StatFunctional{1})
     r1, r2 = _perturb(()->expect(stat, probfunc()), diffblock, π/2)
     (r2 - r1)*ndims(stat)/2
-end
-
-"""
-    backward!((ψ, ∂L/∂ψ*), circuit::AbstractBlock, collector) -> AbstractRegister
-
-back propagate and calculate the gradient ∂L/∂θ = 2*Re(∂L/∂ψ*⋅∂ψ*/∂θ), given ∂L/∂ψ*.
-`ψ` is the output register, ∂L/∂ψ* should also be register type.
-
-Note: gradients are stored in `Diff` blocks, it can be access by either `diffblock.grad` or `gradient(circuit)`.
-Note2: now `backward!` returns the inversed gradient!
-"""
-function backward!(st, block::AbstractBlock, collector)
-    out, outδ = st
-    adjblock = block'
-    backward_params!((out, outδ), block, collector)
-    in = apply!(out, adjblock)
-    inδ = apply!(outδ, adjblock)
-    return (in, inδ)
-end
-
-function backward!(st, circuit::Union{ChainBlock, Concentrator}, collector)
-    for blk in Base.Iterators.reverse(subblocks(circuit))
-        st = backward!(st, blk, collector)
-    end
-    return st
-end
-
-backward!(st, block::Measure, collector) = throw(MethodError(backward!, (st, block, collector)))
-
-backward_params!(st, block::AbstractBlock, collector) = nothing
-function backward_params!(st, block::Diff{<:DiffBlock}, collector)
-    in, outδ = st
-    Σ = generator(content(block))
-    g = dropdims(sum(conj.(statevec(in |> Σ)) .* statevec(outδ), dims=1), dims=1)
-    pushfirst!(collector, -g |> imag)
-    in |> Σ
-    nothing
 end
 
 function classical_autodiff!(circuit::AbstractBlock, out::ArrayReg, adjout::ArrayReg; output_eltype=Any)
