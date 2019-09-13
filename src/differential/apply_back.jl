@@ -64,7 +64,8 @@ function apply_back!(st, block::ControlBlock{N}, collector) where N
     out, outδ = st
     adjblock = block'
     in = apply!(out, adjblock)
-    mat_back!(content(block), mat, collector)
+    #adjm = adjcunmat(OuterProduct(conj(statevec(in)), statevec(outδ)), N, block.ctrl_locs, block.ctrl_config, mat(content(block)), block.locs)
+    mat_back!(eltype(in),block,OuterProduct(conj(statevec(in)), statevec(outδ)),collector)
     inδ = apply!(outδ, adjblock)
     return (in, inδ)
 end
