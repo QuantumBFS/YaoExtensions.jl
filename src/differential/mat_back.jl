@@ -28,13 +28,27 @@ end
 ######################## Composite
 function mat_back!(::Type{T}, rb::AbstractBlock, adjy, collector) where T
     nparameters(rb) == 0 && return collector
-    throw(MethodError(mat_back, (rb, adjy)))
+    throw(MethodError(mat_back!, (rb, adjy)))
 end
 
 function mat_back!(::Type{T}, rb::PutBlock{N, C, RT}, adjy, collector) where {T, N, C, RT}
     nparameters(rb) == 0 && return collector
     adjm = adjcunmat(adjy, N, (), (), mat(content(rb)), rb.locs)
     mat_back!(T, content(rb), adjm, collector)
+end
+
+function mat_back!(::Type{T}, rb::Concentrator{N}, adjy, collector) where {T,N}
+    nparameters(rb) == 0 && return collector
+    adjm = adjcunmat(adjy, N, (), (), mat(content(rb)), rb.locs)
+    mat_back!(T, content(rb), adjm, collector)
+end
+
+function mat_back!(::Type{T}, rb::CachedBlock, adjy, collector) where T
+    mat_back!(T, content(rb), adjy, collector)
+end
+
+function mat_back!(::Type{T}, rb::Daggered, adjy, collector) where T
+    mat_back!(T, content(rb), adjy', collector)
 end
 
 function mat_back!(::Type{T}, rb::ControlBlock{N, C, RT}, adjy, collector) where {T, N, C, RT}
@@ -44,23 +58,45 @@ function mat_back!(::Type{T}, rb::ControlBlock{N, C, RT}, adjy, collector) where
 end
 
 function mat_back!(::Type{T}, rb::ChainBlock{N}, adjy, collector) where {T,N}
-    nparameters(rb) == 0 && return collector
-    cache = Any[]
-    m = mat(blk)
-    push!(mat)
-    for blk in Iterators.reverse(rb.blocks)
+    np = nparameters(rb)
+    np == 0 && return collector
+    blocks = rb.blocks[end:-1:1]
+    mi = mat(blocks[1])
+    cache = Any[mi]
+    for b in blocks[1:end-1]
+        mi = mi*mat(b)
+        push!(cache, mi)
     end
-    c = []
-    for b in rb
-        push!(c, b)
+    for ib in length(rb):-1:1
+        b = blocks[ib]
+        adjb = ib==1 ? adjy : cache[ib-1]'*adjy
+        mat_back!(T, b, adjb, collector)
+        ib!=1 && (adjy = adjy*mat(b)')
     end
-    for b in rb
-        mat_back!(T, b, adjy, collector)
-    end
+    collector[1:np] .= collector[np:-1:1]
+    return collector
 end
 
 function mat_back!(::Type{T}, rb::KronBlock{N}, adjy, collector) where {T,N}
+    nparameters(rb) == 0 && return collector
     for loc in rb.locs
-        adjcunmat(adjy, N, (), (), mat(content(rb)), rb.locs)
+        adjm = adjcunmat(adjy, N, (), (), mat(T,rb[loc]), (rb.locs...,))
+        mat_back!(T, rb[loc], adjm, collector)
     end
+    return collector
+end
+
+function mat_back!(::Type{T}, rb::Add{N}, adjy, collector) where {T,N}
+    nparameters(rb) == 0 && return collector
+    for b in subblocks(rb)[end:-1:1]
+        mat_back!(T, b, adjy, collector)
+    end
+    return collector
+end
+
+function mat_back!(::Type{T}, rb::Scale{N}, adjy, collector) where {T,N}
+    np = nparameters(rb)
+    np == 0 && return collector
+    mat_back!(T, content(rb), factor(rb)*adjy, collector)
+    return collector
 end

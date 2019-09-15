@@ -1,7 +1,7 @@
 export gatetime, gatecount
 
-const GROUPA = Union{ChainBlock, PutBlock, Concentrator, Diff, CachedBlock}
-const GROUPB = Union{KronBlock, PauliString}
+const GROUPA = Union{ChainBlock, PutBlock, Concentrator, CachedBlock}
+const GROUPB = Union{KronBlock}
 gatetime(::Val, c::GROUPA) = sum(gatetime, c |> subblocks)
 gatetime(::Val, c::GROUPB) = maximum(gatetime, c |> subblocks)
 #gatetime(s::Val{:Basic}, c::GROUPA) = invoke(gatetime, Tuple{Val, GROUPA}, s, c)
@@ -13,7 +13,7 @@ gatetime(::Val{:Sym}, c::Measure) = c.collapseto isa Nothing ? Basic(:Tm) : Basi
 gatetime(c::AbstractBlock) = gatetime(Val(:Sym), c)
 
 gatecount(blk::AbstractBlock) = gatecount!(blk, Dict{Type{<:AbstractBlock}, Int}())
-gatecount!(c::Union{ChainBlock, KronBlock, PauliString, PutBlock, Concentrator, Diff, CachedBlock}, storage::AbstractDict) = (gatecount!.(c |> subblocks, Ref(storage)); storage)
+gatecount!(c::Union{ChainBlock, KronBlock, PauliString, PutBlock, Concentrator, CachedBlock}, storage::AbstractDict) = (gatecount!.(c |> subblocks, Ref(storage)); storage)
 function gatecount!(c::RepeatedBlock, storage::AbstractDict)
     k = typeof(c.block)
     n = length(c.addrs)

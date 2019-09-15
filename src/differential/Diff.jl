@@ -174,3 +174,17 @@ function parameters_of_diff!(out, c::AbstractBlock)
     return out
 end
 parameters_of_diff(c::AbstractBlock) = parameters_of_diff!(Float64[], c)
+
+# to make a mat block differentiable
+Yao.niparams(x::GeneralMatrixBlock{N,N}) where N = 1<<2N
+Yao.getiparams(x::GeneralMatrixBlock) where N = (vec(x.mat)...,)
+
+struct Echo{N,OT<:IO} <: PrimitiveBlock{N}
+    sym::Symbol
+    io::OT
+end
+
+Echo(nbits::Int, sym::Symbol) = Echo{nbits, typeof(stdout)}(sym, stdout)
+
+Yao.apply!(reg::AbstractRegister, ec::Echo) = (println(ec.io, "apply!(::$(typeof(reg)), $(ec.sym))"); reg)
+Yao.mat(reg::AbstractRegister, ec::Echo{N}) where N = (println(io, "mat($(ec.sym))"); IMatrix{1<<N})

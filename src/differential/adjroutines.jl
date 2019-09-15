@@ -1,20 +1,4 @@
-@inline function adjsetcol!(csc::SparseMatrixCSC, icol::Int, rowval::AbstractVector, nzval::SubArray)
-    begin
-        S = csc.colptr[icol]
-        E = csc.colptr[icol+1]-1
-        nzval .+= view(csc.nzval, S:E)
-    end
-    csc
-end
-
-@inline function adjunij!(mat::SparseMatrixCSC, locs, U::Matrix)
-    for j = 1:size(U, 2)
-        adjsetcol!(mat, locs[j], locs, view(U,:,j))
-    end
-    return U
-end
-
-@inline function adjunij!(mat::OuterProduct, locs, U::Matrix)
+@inline function adjunij!(mat::AbstractMatrix, locs, U::Matrix)
     for j = 1:size(U, 2)
         for i = 1:size(U, 2)
             U[i,j] += mat[locs[i],locs[j]]
@@ -23,16 +7,7 @@ end
     return U
 end
 
-@inline function adjunij!(mat::SparseMatrixCSC, locs, U::SparseMatrixCSC)
-    for j = 1:size(U, 2)
-        S = U.colptr[j]
-        E = U.colptr[j+1]-1
-        @inbounds adjsetcol!(mat, locs[j], locs, view(U.nzval,S:E))
-    end
-    return U
-end
-
-@inline function adjunij!(mat::OuterProduct, locs, U::SparseMatrixCSC)
+@inline function adjunij!(mat::AbstractMatrix, locs, U::SparseMatrixCSC)
     for j = 1:size(U, 2)
         S = U.colptr[j]
         E = U.colptr[j+1]-1
@@ -48,7 +23,7 @@ end
     return U
 end
 
-@inline function adjunij!(mat::OuterProduct, locs, U::Diagonal)
+@inline function adjunij!(mat::AbstractMatrix, locs, U::Diagonal)
     for i=1:size(U,1)
         li = locs[i]
         U.diag[i] += mat[li, li]
@@ -61,6 +36,12 @@ end
     return U
 end
 
+@inline function adjunij!(mat::AbstractMatrix, locs, U::PermMatrix)
+    for i=1:size(U, 1)
+        U.vals[i] += mat[locs[i], locs[U.perm[i]]]
+    end
+    return U
+end
 
 function adjcunmat(adjy::AbstractMatrix, nbit::Int, cbits::NTuple{C, Int}, cvals::NTuple{C, Int}, U0::AbstractMatrix{T}, locs::NTuple{M, Int}) where {C, M, T}
     U, ic, locs_raw = YaoBlocks.reorder_unitary(nbit, cbits, cvals, U0, locs)
@@ -104,3 +85,31 @@ _render_adjU(U0::AbstractMatrix{T}) where T = zeros(T, size(U0)...)
 _render_adjU(U0::SDSparseMatrixCSC{T}) where T = SparseMatrixCSC(size(U0)..., dynamicize(U0.colptr), dynamicize(U0.rowval), zeros(T, U0.nzval|>length))
 _render_adjU(U0::SDDiagonal{T}) where T = Diagonal(zeros(T, size(U0, 1)))
 _render_adjU(U0::SDPermMatrix{T}) where T = PermMatrix(U0.perm, zeros(T, length(U0.vals)))
+
+# DEPRECATED
+#=
+@inline function adjsetcol!(csc::SparseMatrixCSC, icol::Int, rowval::AbstractVector, nzval::SubArray)
+    begin
+        S = csc.colptr[icol]
+        E = csc.colptr[icol+1]-1
+        nzval .+= view(csc.nzval, S:E)
+    end
+    csc
+end
+
+@inline function adjunij!(mat::SparseMatrixCSC, locs, U::Matrix)
+    for j = 1:size(U, 2)
+        adjsetcol!(mat, locs[j], locs, view(U,:,j))
+    end
+    return U
+end
+
+@inline function adjunij!(mat::SparseMatrixCSC, locs, U::SparseMatrixCSC)
+    for j = 1:size(U, 2)
+        S = U.colptr[j]
+        E = U.colptr[j+1]-1
+        @inbounds adjsetcol!(mat, locs[j], locs, view(U.nzval,S:E))
+    end
+    return U
+end
+=#

@@ -86,7 +86,8 @@ function Random.randn!(m::PermMatrix)
     return m
 end
 
-struct OuterProduct{T} <: AbstractMatrix{T}
+abstract type LowRankMatrix{T} <: AbstractMatrix{T} end
+struct OuterProduct{T} <: LowRankMatrix{T}
     left::Vector{T}
     right::Vector{T}
 end
@@ -94,3 +95,24 @@ end
 Base.getindex(op::OuterProduct, i::Int, j::Int) = op.left[i]*op.right[j]
 Base.size(op::OuterProduct) = (length(op.left), length(op.right))
 Base.size(op::OuterProduct, i::Int) = i==1 ? length(op.left) : (i==2 ? length(op.right) : throw(DimensionMismatch("")))
+Base.adjoint(op::OuterProduct) = OuterProduct(conj(op.right), conj(op.left))
+Base.transpose(op::OuterProduct) = OuterProduct(op.right, op.left)
+
+LinearAlgebra.mul!(a::OuterProduct, b) = OuterProduct(a.left, vec(transpose(a.right)*b))
+
+struct BatchedOuterProduct{T} <: LowRankMatrix{T}
+    left::Matrix{T}
+    right::Matrix{T}
+end
+
+Yao.nbatch(op::BatchedOuterProduct) = size(op.left, 2)
+Base.getindex(op::BatchedOuterProduct, i::Int, j::Int) = sum(k->op.left[i,k]*op.right[j,k], 1:nbatch(op))
+Base.size(op::BatchedOuterProduct) = (size(op.left,1), size(op.right,1))
+Base.size(op::BatchedOuterProduct, i::Int) = i==1 ? size(op.left,1) : (i==2 ? size(op.right,1) : throw(DimensionMismatch("")))
+Base.adjoint(op::BatchedOuterProduct) = BatchedOuterProduct(conj(op.right), conj(op.left))
+Base.transpose(op::BatchedOuterProduct) = BatchedOuterProduct(op.right, op.left)
+
+outerprod(left::AbstractVector, right::AbstractVector) = OuterProduct(left, right)
+outerprod(left::AbstractMatrix, right::AbstractMatrix) = BatchedOuterProduct(left, right)
+outerprod(in::ArrayReg{1}, outδ::ArrayReg{1}) = outerprod(conj(statevec(in)), statevec(outδ))
+outerprod(in::ArrayReg{B}, outδ::ArrayReg{B}) where B = outerprod(conj(statevec(in)), statevec(outδ))
