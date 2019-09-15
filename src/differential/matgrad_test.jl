@@ -104,15 +104,23 @@ end
     @test test_mat_back(ComplexF64, chain(3, put(3, 2=>X), control(3, 2,1=>shift(0.0))), 0.5; δ=1e-5)
     @test test_mat_back(ComplexF64, chain(3, control(3, 2,1=>shift(0.0)), put(3, 2=>X)), 0.5; δ=1e-5)
     @test test_mat_back(ComplexF64, chain(3, control(3, 2,1=>shift(0.0)), put(3, 1=>Rx(0.0))), [0.5,0.5]; δ=1e-5)
-end
-
-@testset "mat Add" begin
-    @test test_mat_back(ComplexF64, (3*control(3, (2,3), 1=>Rz(0.0))+put(3,2=>Rx(0.0)))/5, [0.5,0.5]; δ=1e-5)
+    @test test_mat_back(ComplexF64, chain(3, control(3, 2,1=>shift(0.0)), chain(put(3, 1=>Rx(0.0)), put(3, 2=>Ry(0.0)))), [0.5,0.5,0.5]; δ=1e-5)
+    @test test_mat_back(ComplexF64, chain(3, chain(3, put(3, 1=>Rx(0.0)), put(3, 2=>Ry(0.0)))), [0.5,0.5]; δ=1e-5)
 end
 
 @testset "mat kron" begin
     use_outeradj=false
-    @test_broken test_mat_back(ComplexF64, kron(Rx(0.5), Rz(0.6)), [0.5, 0.5]; δ=1e-5, use_outeradj=use_outeradj)
+    @test test_mat_back(ComplexF64, kron(Rx(0.5), Rz(0.6)), [0.5, 0.5]; δ=1e-5, use_outeradj=use_outeradj)
+end
+
+@testset "system test" begin
+    for c in [variational_circuit(4), QFTCircuit(4)]
+        params = rand(nparameters(c)) * 2π
+        @test test_mat_back(ComplexF64, c, params; δ=1e-5, use_outeradj=false)
+        for reg0 in [rand_state(4), rand_state(4, nbatch=10)]
+            @test test_apply_back(reg0, c, params; δ=1e-5)
+        end
+    end
 end
 
 @testset "apply Add" begin

@@ -72,8 +72,13 @@ function test_mat_back(T, block::AbstractBlock{N}, param; δ=1e-5, use_outeradj:
     num = ng(mfunc, param, δ)
     res = isapprox(got, num, atol=10*δ)
     if !res
+        @show size(got)
         @show got
         @show num
+        #@show num[:,:,2] - got[:,:,2]
+        #@show num[:,:,1] ≈ got[:,:,1]
+        #@show num[:,:,2] ≈ got[:,:,2]
+        #@show num[:,:,3] ≈ got[:,:,3]
     end
     return res
 end

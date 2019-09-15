@@ -11,7 +11,7 @@ function mat_back!(::Type{T}, rb::RotationGate{N, RT}, adjy, collector) where {T
 end
 
 function mat_back!(::Type{T}, A::GeneralMatrixBlock, adjy, collector) where T
-    pushfirst!(collector, projection(A.mat, adjy))
+    pushfirst!(collector,adjy)
 end
 
 function mat_back!(::Type{T}, rb::PhaseGate, adjy, collector) where {T}
@@ -60,29 +60,27 @@ end
 function mat_back!(::Type{T}, rb::ChainBlock{N}, adjy, collector) where {T,N}
     np = nparameters(rb)
     np == 0 && return collector
-    blocks = rb.blocks[end:-1:1]
-    mi = mat(blocks[1])
+    length(rb) == 1 && return mat_back!(T, rb[1], adjy, collector)
+
+    mi = mat(rb[1])
     cache = Any[mi]
-    for b in blocks[1:end-1]
-        mi = mi*mat(b)
+    for b in rb[2:end-1]
+        mi = mat(b)*mi
         push!(cache, mi)
     end
+    adjb = adjy * cache[end]'
     for ib in length(rb):-1:1
-        b = blocks[ib]
-        adjb = ib==1 ? adjy : cache[ib-1]'*adjy
+        b = rb[ib]
+        #adjb = ib==1 ? adjy : adjy*cache[ib]'
         mat_back!(T, b, adjb, collector)
-        ib!=1 && (adjy = adjy*mat(b)')
+        ib!=1 && (adjb = mat(b)'*adjb*mat(rb[ib-1]))
     end
-    collector[1:np] .= collector[np:-1:1]
     return collector
 end
 
 function mat_back!(::Type{T}, rb::KronBlock{N}, adjy, collector) where {T,N}
     nparameters(rb) == 0 && return collector
-    for loc in rb.locs
-        adjm = adjcunmat(adjy, N, (), (), mat(T,rb[loc]), (rb.locs...,))
-        mat_back!(T, rb[loc], adjm, collector)
-    end
+    mat_back!(T, chain(N, [put(loc=>rb[loc]) for loc in rb.locs]), adjy, collector)
     return collector
 end
 
