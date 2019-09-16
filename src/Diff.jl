@@ -1,4 +1,4 @@
-export Rotor, generator, Diff, backward!, classical_autodiff!, CPhaseGate, DiffBlock
+export Rotor, generator, Diff, CPhaseGate, DiffBlock
 export dispatch_to_diff!, parameters_of_diff
 import Yao: expect, content, chcontent, mat, apply!
 using StatsBase
@@ -6,6 +6,19 @@ using StatsBase
 using Yao
 
 ############# General Rotor ############
+const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate{<:Any, T}}}
+const CphaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
+const DiffBlock{N, T} = Union{Rotor{N, T}, CphaseGate{N, T}}
+
+"""
+    generator(rot::Rotor) -> AbstractBlock
+
+Return the generator of rotation block.
+"""
+generator(rot::RotationGate) = rot.block
+generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
+generator(c::CphaseGate{N}) where N = ControlBlock{N}(c.ctrl_locs, c.ctrl_config, Z, c.locs)
+
 #################### The Basic Diff #################
 """
     Diff{GT, N} <: TagBlock{GT, N}
@@ -30,33 +43,25 @@ function YaoBlocks.print_annotation(io::IO, df::Diff)
 end
 
 #### interface #####
-export autodiff, numdiff, opdiff, StatFunctional, statdiff, as_weights
+export markdiff, numdiff, opdiff, StatFunctional, statdiff, as_weights
 
 as_weights(probs::AbstractVector{T}) where T = Weights(probs, T(1))
 """
-    autodiff(mode::Symbol, block::AbstractBlock) -> AbstractBlock
-    autodiff(mode::Symbol) -> Function
+    markdiff(mode::Symbol, block::AbstractBlock) -> AbstractBlock
+    markdiff(mode::Symbol) -> Function
 
 automatically mark differentiable items in a block tree as differentiable.
 """
-function autodiff end
-autodiff(mode::Symbol) = block->autodiff(mode, block)
-autodiff(mode::Symbol, block::AbstractBlock) = autodiff(Val(mode), block)
-
-# for BP
-# Sequential, Roller and ChainBlock can propagate.
-function autodiff(mode::Val{:BP}, blk::Union{ChainBlock, Sequential})
-    chsubblocks(blk, autodiff.(mode, subblocks(blk)))
-end
+function markdiff end
 
 # for QC
-autodiff(::Val{:QC}, block::Union{RotationGate, CphaseGate}) = Diff(block)
+markdiff(block::Union{RotationGate, CphaseGate}) = Diff(block)
 # escape control blocks.
-autodiff(::Val{:QC}, block::ControlBlock) = block
+markdiff(block::ControlBlock) = block
 
-function autodiff(mode::Val{:QC}, blk::AbstractBlock)
+function markdiff(blk::AbstractBlock)
     blks = subblocks(blk)
-    isempty(blks) ? blk : chsubblocks(blk, autodiff.(mode, blks))
+    isempty(blks) ? blk : chsubblocks(blk, markdiff.(blks))
 end
 
 @inline function _perturb(func, gate::Diff{<:DiffBlock}, δ::Real)
@@ -153,12 +158,6 @@ end
     (r2 - r1)*ndims(stat)/2
 end
 
-function classical_autodiff!(circuit::AbstractBlock, out::ArrayReg, adjout::ArrayReg; output_eltype=Any)
-    collector = output_eltype[]
-    in, inδ = backward!((out, adjout), circuit, collector)
-    return 2*inδ, collector
-end
-
 dispatch_to_diff!(c::AbstractBlock, params) = dispatch_to_diff!(nothing, c, params)
 function dispatch_to_diff!(f,c::AbstractBlock, params)
     dis = YaoBlocks.Dispatcher(params)
@@ -175,6 +174,5 @@ function parameters_of_diff!(out, c::AbstractBlock)
 end
 parameters_of_diff(c::AbstractBlock) = parameters_of_diff!(Float64[], c)
 
-# to make a mat block differentiable
-Yao.niparams(x::GeneralMatrixBlock{N,N}) where N = 1<<2N
-Yao.getiparams(x::GeneralMatrixBlock) where N = (vec(x.mat)...,)
+import .AD
+AD.mat_back!(::Type{T}, db::Diff, adjm::AbstractMatrix, collector) where T = AD.mat_back!(T, content(db), adjm, collector)

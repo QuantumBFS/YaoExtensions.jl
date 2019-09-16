@@ -58,3 +58,7 @@ end
 @testset "math_gate" begin
     include("math_gate.jl")
 end
+
+@testset "autodiff" begin
+    include("autodiff/autodiff.jl")
+end

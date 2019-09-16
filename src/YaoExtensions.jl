@@ -29,4 +29,12 @@ include("hamiltonians.jl")
 
 include("timer.jl")
 
+# classical autodiff
+include("autodiff/autodiff.jl")
+
+# quantum diff
+include("Diff.jl")
+
+include("deprecate.jl")
+
 end # module

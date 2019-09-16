@@ -1,13 +1,18 @@
+export mat_back!, mat_back
 ############### Primitive
 """
 The matrix gradient of a rotation block.
 """
-function rotgrad(::Type{T}, rb::RotationGate{N}) where {N, T}
+@inline function rotgrad(::Type{T}, rb::RotationGate{N}) where {N, T}
     -sin(rb.theta / 2)/2 * IMatrix{1<<N}() + im/2 * cos(rb.theta / 2) * conj(mat(T, rb.block))
 end
 
 function mat_back!(::Type{T}, rb::RotationGate{N, RT}, adjy, collector) where {T, N, RT}
     pushfirst!(collector, projection(rb.theta, sum(adjy .* rotgrad(T, rb))))
+end
+
+function mat_back!(::Type{T}, rb::TimeEvolution{N}, adjy, collector) where {N,T}
+    pushfirst!(collector, projection(rb.dt, sum(im.*adjy .* conj.(mat(rb.H)*mat(rb)))))
 end
 
 function mat_back!(::Type{T}, A::GeneralMatrixBlock, adjy, collector) where T
@@ -28,7 +33,7 @@ end
 ######################## Composite
 function mat_back!(::Type{T}, rb::AbstractBlock, adjy, collector) where T
     nparameters(rb) == 0 && return collector
-    throw(MethodError(mat_back!, (rb, adjy)))
+    throw(MethodError(mat_back!, (T, rb, adjy, collector)))
 end
 
 function mat_back!(::Type{T}, rb::PutBlock{N, C, RT}, adjy, collector) where {T, N, C, RT}
@@ -98,3 +103,11 @@ function mat_back!(::Type{T}, rb::Scale{N}, adjy, collector) where {T,N}
     mat_back!(T, content(rb), factor(rb)*adjy, collector)
     return collector
 end
+
+"""
+    mat_back([::Type{T}, ]block::AbstractBlock, adjm::AbstractMatrix) -> Vector
+
+The backward function of `mat`. Returns the gradients of parameters.
+"""
+mat_back(block::AbstractBlock, adjm::AbstractMatrix) = mat_back!(ComplexF64, block, adjm, [])
+mat_back(::Type{T}, block::AbstractBlock, adjm::AbstractMatrix) where T = mat_back!(T, block, adjm, [])

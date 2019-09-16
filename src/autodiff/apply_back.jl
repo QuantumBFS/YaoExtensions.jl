@@ -1,6 +1,6 @@
+export apply_back!, apply_back
+
 const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate{<:Any, T}}}
-#const CphaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
-#const DiffBlock{N, T} = Union{Rotor{N, T}, CphaseGate{N, T}}
 
 """
     generator(rot::Rotor) -> AbstractBlock
@@ -9,7 +9,6 @@ Return the generator of rotation block.
 """
 generator(rot::RotationGate) = rot.block
 generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
-#generator(c::CphaseGate{N}) where N = ControlBlock{N}(c.ctrl_locs, c.ctrl_config, Z, c.locs)
 
 """
     apply_back!((ψ, ∂L/∂ψ*), circuit::AbstractBlock, collector) -> AbstractRegister
@@ -51,12 +50,25 @@ function apply_back!(st, block::Rotor{N}, collector) where N
     return (in, inδ)
 end
 
+function apply_back!(st, block::TimeEvolution{N}, collector) where N
+    out, outδ = st
+    adjblock = block'
+
+    out, outδ = st
+    in = apply!(out, adjblock)
+    for o in outδ
+        !all(x->x≈0.0im, o.state) && apply!(o, adjblock)
+    end
+    pushfirst!(collector, -sum(imag(in'*apply!(copy(outδ), block.H))))
+    return (in, outδ)
+end
+
 function apply_back!(st, block::PutBlock{N}, collector) where N
     out, outδ = st
     adjblock = block'
     in = apply!(out, adjblock)
     adjmat = outerprod(in, outδ)
-    mat_back!(eltype(in), block, adjmat, collector)
+    mat_back!(datatype(in), block, adjmat, collector)
     inδ = apply!(outδ, adjblock)
     return (in, inδ)
 end
@@ -71,7 +83,7 @@ function apply_back!(st, block::ControlBlock{N}, collector) where N
     in = apply!(out, adjblock)
     #adjm = adjcunmat(outerprod(in, outδ), N, block.ctrl_locs, block.ctrl_config, mat(content(block)), block.locs)
     adjmat = outerprod(in, outδ)
-    mat_back!(eltype(in),block,adjmat,collector)
+    mat_back!(datatype(in),block,adjmat,collector)
     inδ = apply!(outδ, adjblock)
     return (in, inδ)
 end
@@ -81,7 +93,7 @@ function apply_back!(st, block::Daggered, collector)
     adjblock = block'
     in = apply!(out, adjblock)
     adjmat = outerprod(outδ, in)
-    mat_back!(eltype(in), content(block),adjmat,collector)
+    mat_back!(datatype(in), content(block),adjmat,collector)
     inδ = apply!(outδ, adjblock)
     return (in, inδ)
 end
@@ -101,7 +113,25 @@ function apply_back!(st, circuit::ChainBlock, collector)
     return st
 end
 
-function apply_back!(st, circuit::RepeatedBlock, collector)
+function apply_back!(st, circuit::Add, collector; in)
+    out, outδ = st
+    adjmat = outerprod(outδ, in)
+    for blk in Base.Iterators.reverse(subblocks(circuit))
+        mat_back!(datatype(in), blk, adjmat, collector)
+    end
+    inδ = apply!(outδ, adjblock)
+    (in, inδ)
+end
+
+function apply_back!(st, block::RepeatedBlock{N,C}, collector) where {N,C}
+    if nparameters(content(block)) == 0
+        return apply!.(st, Ref(block'))
+    end
+    res = Any[]
+    st = apply_back!(st, chain(N, [put(loc=>content(block)) for loc in block.locs]), res)
+    res = dropdims(sum(reshape(res, :,C), dims=2), dims=2)
+    prepend!(collector, res)
+    return st
 end
 
 # TODO: concentrator, repeat, kron
@@ -114,4 +144,30 @@ function backward_params!(st, block::Rotor, collector)
     pushfirst!(collector, -imag(g)/2)
     in |> Σ
     nothing
+end
+
+"""
+    apply_back(st::Tuple{<:ArrayReg, <:ArrayReg}, block::AbstractBlock; kwargs...) -> (out, outδ), paramsδ
+
+The backward function of `apply!`. Returns a tuple of ((input register, gradient of input register), parameter gradients)
+"""
+function apply_back(st::Tuple{<:ArrayReg, <:ArrayReg}, block::AbstractBlock; kwargs...)
+    col=[]
+    in, inδ = apply_back!(st,block,col; kwargs...)
+    (in, inδ), col
+end
+
+Base.adjoint(::typeof(expect)) = Adjoint(expect)
+Base.show(io::IO, ::Adjoint{Any,typeof(expect)}) = print(io, "expect'")
+Base.show(io::IO, ::MIME"text/plain", ::Adjoint{Any,typeof(expect)}) = print(io, "expect'")
+"""
+expect')(op::AbstractBlock, circuit::Pair{<:ArrayReg, <:AbstractBlock})
+
+"""
+function (::Adjoint{Any,typeof(expect)})(op::AbstractBlock, circuit::Pair{<:ArrayReg, <:AbstractBlock})
+    reg, c = circuit
+    out = copy(reg) |> c
+    outδ = copy(out) |> op
+    (in, inδ), paramsδ = apply_back((out, outδ), c)
+    return outδ => paramsδ.*2
 end

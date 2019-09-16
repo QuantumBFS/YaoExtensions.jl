@@ -51,7 +51,7 @@ function adjcunmat(adjy::AbstractMatrix, nbit::Int, cbits::NTuple{C, Int}, cvals
         adjunij!(adjy, locs_raw+i, adjU)
     end
 
-    adjU = all(TupleTools.diff(locs).>0) ? adjU : YaoBase.reorder(adjU, collect(locs)|>sortperm|>sortperm)
+    adjU = all(diff([locs...]).>0) ? adjU : YaoBase.reorder(adjU, collect(locs)|>sortperm|>sortperm)
     adjU
 end
 

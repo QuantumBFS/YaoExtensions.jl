@@ -10,7 +10,6 @@ using LinearAlgebra, Test, Random
 
     df2 = Diff(rot(CNOT, 0.3))
     @test nqubits(df2) == 2
-    @test_throws MethodError backward!((reg, reg), Measure(4), Any[])
     df3 = chain(put(2,2=>Rx(0.3)), Diff(rot(CNOT, 0.3)))
     dispatch_to_diff!(df3, 1.0)
     @test parameters(df3) == [0.3,1.0]
@@ -72,30 +71,21 @@ function ibm_diff_circuit(nbit, nlayer, pairs)
 end
 
 @testset "BP diff" begin
-    c = put(4, 3=>Rx(0.5)) |> autodiff(:BP)
+    c = put(4, 3=>Rx(0.5))
     cad = c'
     @test mat(cad) == mat(c)'
 
-    circuit = chain(4, repeat(4, H, 1:4), put(4, 3=>Rz(0.5)) |> autodiff(:BP), control(4, 2, 1=>shift(0.4)) |> autodiff(:BP), control(2, 1=>X), put(4, 4=>Ry(0.2)) |> autodiff(:BP))
+    circuit4ad = chain(4, repeat(4, H, 1:4), put(4, 3=>Rz(0.5)), control(4, 2, 1=>shift(0.4)), control(2, 1=>X), put(4, 4=>Ry(0.2)))
+    circuit = chain(4, repeat(4, H, 1:4), put(4, 3=>Rz(0.5)) |> markdiff, control(4, 2, 1=>shift(0.4)) |> markdiff, control(2, 1=>X), put(4, 4=>Ry(0.2)) |> markdiff)
     op = repeat(4, X, 1:4)
     θ = [0.9, 0.2, 0.3]
     dispatch!(circuit, θ)
     loss! = loss_expect!(circuit, op)
     for ψ0 in [rand_state(4), rand_state(4, nbatch=10)]
-        ψ = copy(ψ0) |> circuit
-
-        # get gradient
-        δ = copy(ψ) |> op
-        g1 = Any[]
-        in, inδ = backward!((copy(ψ), copy(δ)), circuit, g1)
-        @test in ≈ ψ0
-
         dispatch!(circuit, θ)
-        inδ_, g1_ = classical_autodiff!(circuit, copy(ψ), copy(δ); output_eltype=Any)
-        @test isapprox(inδ.state, inδ_.state/2, atol=1e-5)
-        @test all(isapprox.(g1, g1_, atol=1e-5))
+        dispatch!(circuit4ad, θ)
+        ψδ, g1 = expect'(op, ψ0 => circuit4ad)
 
-        dispatch!(circuit, θ)
         g2 = Vector{Any}(undef, length(θ))
         η = 1e-5
         for i in 1:length(θ)
@@ -106,8 +96,9 @@ end
             g2[i] = (loss!(copy(ψ0), θ2) - loss!(copy(ψ0), θ1))/η |> real
         end
         g3 = opdiff.(() -> copy(ψ0) |> circuit, collect_blocks(Diff, circuit), Ref(op))
+        g2_ = nbatch(ψ0) == 1 ? g2 : dropdims(sum(hcat(g2...); dims=1), dims=1)
 
-        @test isapprox.(g1, g2, atol=1e-5) |> all
+        @test isapprox.(g1, g2_, atol=1e-5) |> all
         @test isapprox.(g2, g3, atol=1e-5) |> all
     end
 end
@@ -116,15 +107,15 @@ end
     @test generator(put(4, 1=>Rx(0.1))) == put(4, 1=>X)
     @test generator(Rx(0.1)) == X
     circuit = chain(put(4, 1=>Rx(0.1)), control(4, 2, 1=>Ry(0.3)))
-    c2 = circuit |> autodiff(:BP)
-    @test c2[1] isa Diff
+    c2 = circuit |> markdiff
+    @test c2[1].content isa Diff
     @test !(c2[2] isa Diff)
 end
 
 @testset "numdiff & opdiff" begin
     @test collect_blocks(XGate, chain([X, Y, Z])) == [X]
 
-    c = chain(put(4, 1=>Rx(0.5))) |> autodiff(:QC)
+    c = chain(put(4, 1=>Rx(0.5))) |> markdiff
     nd = numdiff(c[1].content) do
         expect(put(4, 1=>Z), zero_state(4) |> c) |> real # return loss please
     end
@@ -135,7 +126,7 @@ end
     @test isapprox(nd, ed, atol=1e-4)
 
     reg = rand_state(4)
-    c = chain(put(4, 1=>Rx(0.5)), control(4, 1, 2=>Ry(0.5)), control(4, 1, 2=>shift(0.3)),  kron(4, 2=>Rz(0.3), 3=>Rx(0.7))) |> autodiff(:QC)
+    c = chain(put(4, 1=>Rx(0.5)), control(4, 1, 2=>Ry(0.5)), control(4, 1, 2=>shift(0.3)),  kron(4, 2=>Rz(0.3), 3=>Rx(0.7))) |> markdiff
     dbs = collect_blocks(Diff, c)
     loss1z() = expect(kron(4, 1=>Z, 2=>X), copy(reg) |> c) |> real  # return loss please
     nd = numdiff.(loss1z, dbs)
@@ -157,7 +148,7 @@ end
     V = StatFunctional(h)
     VF = StatFunctional{2}(f)
     prs = [1=>2, 2=>3, 3=>1]
-    c = ibm_diff_circuit(nbit, 2, prs) |> autodiff(:QC)
+    c = ibm_diff_circuit(nbit, 2, prs) |> markdiff
     dispatch!(c, :random)
     dbs = collect_blocks(Diff,c)
 
@@ -173,7 +164,7 @@ end
     # 1D
     h = randn(1<<nbit)
     V = StatFunctional(h)
-    c = ibm_diff_circuit(nbit, 2, prs) |> autodiff(:QC)
+    c = ibm_diff_circuit(nbit, 2, prs) |> markdiff
     dispatch!(c, :random)
     dbs = collect_blocks(Diff, c)
 
@@ -182,4 +173,32 @@ end
     gradsn = numdiff.(()->expect(V, zero_state(nbit) |> c |> probs |> as_weights), dbs)
     gradse = statdiff.(()->zero_state(nbit) |> c |> probs |> as_weights, dbs, Ref(V))
     @test all(isapprox.(gradse, gradsn, atol=1e-4))
+end
+
+@testset "random diff circuit" begin
+    c = variational_circuit(4, 3, [1=>3, 2=>4, 2=>3, 4=>1])
+    rots = collect_blocks(RotationGate, c)
+    @test length(rots) == nparameters(c) == 40
+    @test dispatch!(+, c, ones(40)*0.1) |> parameters == ones(40)*0.1
+    @test dispatch!(+, c, :random) |> parameters != ones(40)*0.1
+
+    nbit = 4
+    c = variational_circuit(nbit, 1, pair_ring(nbit), mode=:Split) |> markdiff
+    reg = rand_state(4)
+    dispatch!(c, randn(nparameters(c)))
+
+    dbs = collect_blocks(Diff, c)
+    op = kron(4, 1=>Z, 2=>X)
+    loss1z() = expect(op, copy(reg) |> c)  # return loss please
+
+    # back propagation
+    _, bd = expect'(op, reg=>c)
+    @show bd
+
+    # get num gradient
+    nd = numdiff.(loss1z, dbs)
+    ed = opdiff.(()->copy(reg)|>c, dbs, Ref(op))
+
+    @test isapprox.(nd, ed, atol=1e-4) |> all
+    @test isapprox.(nd, bd, atol=1e-4) |> all
 end
