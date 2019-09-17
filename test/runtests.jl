@@ -31,6 +31,10 @@ end
     include("Bag.jl")
 end
 
+@testset "TrivilGate" begin
+    include("TrivilGate.jl")
+end
+
 @testset "ConditionBlock" begin
     include("ConditionBlock.jl")
 end

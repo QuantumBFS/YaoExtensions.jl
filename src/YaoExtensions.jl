@@ -30,4 +30,6 @@ include("hamiltonians.jl")
 
 include("timer.jl")
 
+include("deprecate.jl")
+
 end # module

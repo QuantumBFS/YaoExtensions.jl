@@ -39,33 +39,3 @@ end
     @test rotor(5, 2, true, true) |> nqubits == 5
     @test collect_blocks(PutBlock{<:Any, <:Any, <:RotationGate}, rotorset(:Split, 5, true, false)) |> length == 10
 end
-
-@testset "random diff circuit" begin
-    c = variational_circuit(4, 3, [1=>3, 2=>4, 2=>3, 4=>1])
-    rots = collect_blocks(RotationGate, c)
-    @test length(rots) == nparameters(c) == 40
-    @test dispatch!(+, c, ones(40)*0.1) |> parameters == ones(40)*0.1
-    @test dispatch!(+, c, :random) |> parameters != ones(40)*0.1
-
-    nbit = 4
-    c = variational_circuit(nbit, 1, pair_ring(nbit), mode=:Split) |> autodiff(:BP)
-    reg = rand_state(4)
-    dispatch!(c, randn(nparameters(c)))
-
-    dbs = collect_blocks(Diff, c)
-    op = kron(4, 1=>Z, 2=>X)
-    loss1z() = expect(op, copy(reg) |> c)  # return loss please
-
-    # back propagation
-    ψ = copy(reg) |> c
-    δ = copy(ψ) |> op
-    bd = Float64[]
-    backward!((ψ, δ), c, bd)
-
-    # get num gradient
-    nd = numdiff.(loss1z, dbs)
-    ed = opdiff.(()->copy(reg)|>c, dbs, Ref(op))
-
-    @test isapprox.(nd, ed, atol=1e-4) |> all
-    @test isapprox.(nd, bd, atol=1e-4) |> all
-end
