@@ -198,7 +198,7 @@ function backward_params!(st, block::Diff{<:DiffBlock}, collector)
     in, outδ = st
     Σ = generator(content(block))
     g = dropdims(sum(conj.(statevec(in |> Σ)) .* statevec(outδ), dims=1), dims=1)
-    pushfirst!(collector, -g |> imag)
+    pushfirst!(collector, -g[1] |> imag)
     in |> Σ
     nothing
 end
