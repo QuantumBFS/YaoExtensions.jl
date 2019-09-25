@@ -22,7 +22,7 @@ Extensions for Yao.
 * RotBasis: basis rotor, make measurements on different basis easier.
 
 * Mod: modulo operation block.
-* QFTBlock: fater way of simulating QFT, instead of running QFT circuit faithfully, simulate it with classical `fft` (thus much faster).
+* QFTBlock: faster way of simulating QFT, instead of running QFT circuit faithfully, simulate it with classical `fft` (thus much faster).
 
 #### Utlities
 * timer, timing a circuit excution time (experimental feature!),
