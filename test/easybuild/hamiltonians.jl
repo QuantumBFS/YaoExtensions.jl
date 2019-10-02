@@ -7,4 +7,6 @@ using YaoBlocks: ConstGate
     nbit = 8
     h = heisenberg(nbit) |> cache
     @test ishermitian(h)
+    h = transverse_ising(nbit)
+    @test ishermitian(h)
 end

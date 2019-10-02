@@ -1,13 +1,4 @@
-export inverselines, singlet_block
-export openbox
-
-"""
-    openbox(block::AbstractBlock) -> AbstractBlock
-
-For a black box, like QFTBlock, you can get its white box (loyal simulation) using this function.
-"""
-function openbox end
-
+export inverselines, invorder_firstdim
 """
     inverselines(nbit::Int; n_reg::Int=nbit) -> ChainBlock
 
@@ -24,13 +15,30 @@ function inverselines(nbit::Int; n_reg::Int=nbit)
     c
 end
 
-function singlet_block(nbit::Int, i::Int, j::Int)
-    unit = chain(nbit)
-    push!(unit, put(nbit, i=>chain(X, H)))
-    push!(unit, control(nbit, -i, j=>X))
+"""
+    invorder_firstdim(v::VecOrMat) -> VecOrMat
+
+inverse the bit order of first dimension.
+"""
+function invorder_firstdim(v::Matrix)
+    w = similar(v)
+    n = size(v, 1) |> log2i
+    n_2 = n ÷ 2
+    mask = [bmask(i, n-i+1) for i in 1:n_2]
+    @simd for b in basis(n)
+        @inbounds w[breflect(b, mask; nbits=n)+1,:] = v[b+1,:]
+    end
+    w
 end
 
-singlet_block() = singlet_block(2,1,2)
-
-"""Identity block"""
-eyeblock(nbits::Int) = put(nbits, 1=>I2)
+function invorder_firstdim(v::Vector)
+    n = length(v) |> log2i
+    n_2 = n ÷ 2
+    w = similar(v)
+    #mask = SVector{n_2, Int}([bmask(i, n-i+1)::Int for i in 1:n_2])
+    mask = [bmask(i, n-i+1)::Int for i in 1:n_2]
+    @simd for b in basis(n)
+        @inbounds w[breflect(b, mask; nbits=n)+1] = v[b+1]
+    end
+    w
+end
