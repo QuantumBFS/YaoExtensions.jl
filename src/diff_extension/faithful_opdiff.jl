@@ -39,8 +39,8 @@ Numeric differentiation a loss over a circuit, the loss take the circuit as inpu
 """
 @inline function numdiff(loss, circuit::AbstractBlock, δ::Real=1e-2)
     map(get_diffblocks(circuit)) do diffblock
-        r1, r2 = _perturb(loss(circuit), diffblock, δ)
-        (r1 - r2)/2δ
+        r1, r2 = _perturb(()->loss(circuit), diffblock, δ)
+        (r2 - r1)/2δ
     end
 end
 
@@ -52,6 +52,6 @@ Differentiate an operator expectation value over all parameters.
 @inline function faithful_opdiff(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock})
     map(get_diffblocks(pair.second)) do diffblock
         r1, r2 = _perturb(()->expect(op, copy(pair.first) |> pair.second) |> real, diffblock, π/2)
-        (r1 - r2)/2
+        (r2 - r1)/2
     end
 end

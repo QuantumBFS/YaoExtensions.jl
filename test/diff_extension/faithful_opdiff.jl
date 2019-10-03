@@ -1,4 +1,5 @@
 using Yao, YaoExtensions, Yao.AD
+using Yao.AD: generator
 using Test
 @testset "BP diff" begin
     c = put(4, 3=>Rx(0.5))
@@ -42,18 +43,16 @@ end
     @test collect_blocks(XGate, chain([X, Y, Z])) == [X]
 
     c = chain(put(4, 1=>Rx(0.5))) |> markdiff
-    nd = numdiff(c[1].content) do
-        expect(put(4, 1=>Z), zero_state(4) |> c) |> real # return loss please
+    nd = numdiff(c) do cc
+        res = expect(put(4, 1=>Z), zero_state(4) |> cc) |> real
+        return res
     end
 
-    ed = opdiff(c[1].content, put(4, 1=>Z)) do
-        zero_state(4) |> c  # a function get output
-    end
+    ed = opdiff(put(4, 1=>Z), zero_state(4) => c)
     @test isapprox(nd, ed, atol=1e-4)
 
     reg = rand_state(4)
     c = chain(put(4, 1=>Rx(0.5)), control(4, 1, 2=>Ry(0.5)), control(4, 1, 2=>shift(0.3)),  kron(4, 2=>Rz(0.3), 3=>Rx(0.7))) |> markdiff
-    dbs = collect_blocks(Diff, c)
     loss1z(c) = expect(kron(4, 1=>Z, 2=>X), copy(reg) |> c) |> real  # return loss please
     nd = numdiff(loss1z, c)
     ed = opdiff(kron(4, 1=>Z, 2=>X), copy(reg) => c)
@@ -64,4 +63,32 @@ end
     ed2 = opdiff(kron(4, 1=>Z, 2=>X), copy(reg) => c)
     nd2 = numdiff(loss1z, c)
     @test isapprox(nd, ed, atol=1e-4)
+end
+
+@testset "random diff circuit" begin
+    c = variational_circuit(4, 3, [1=>3, 2=>4, 2=>3, 4=>1])
+    rots = collect_blocks(RotationGate, c)
+    @test length(rots) == nparameters(c) == 40
+    @test dispatch!(+, c, ones(40)*0.1) |> parameters == ones(40)*0.1
+    @test dispatch!(+, c, :random) |> parameters != ones(40)*0.1
+
+    nbit = 4
+    c = variational_circuit(nbit, 1, pair_ring(nbit), mode=:Split) |> markdiff
+    reg = rand_state(4)
+    dispatch!(c, randn(nparameters(c)))
+
+    dbs = collect_blocks(Diff, c)
+    op = kron(4, 1=>Z, 2=>X)
+    loss1z(c) = expect(op, copy(reg) |> c)  # return loss please
+
+    # back propagation
+    _, bd = expect'(op, reg=>c)
+    @show bd
+
+    # get num gradient
+    nd = numdiff(loss1z, c)
+    ed = opdiff(op, copy(reg)=>c)
+
+    @test isapprox.(nd, ed, atol=1e-4) |> all
+    @test isapprox.(nd, bd, atol=1e-4) |> all
 end
