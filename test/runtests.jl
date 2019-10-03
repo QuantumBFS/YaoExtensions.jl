@@ -3,7 +3,7 @@ using Yao
 using YaoExtensions
 
 @testset "block extension" begin
-    include("block_extesion/blocks.jl")
+    include("block_extension/blocks.jl")
 end
 
 @testset "easybuild" begin

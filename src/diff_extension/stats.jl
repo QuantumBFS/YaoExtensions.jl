@@ -1,5 +1,4 @@
 using LinearAlgebra: Adjoint
-using StatsBase
 export as_weights
 export StatFunctional, faithful_statdiff
 
@@ -18,39 +17,62 @@ struct StatFunctional{N, F}
 end
 Base.ndims(stat::StatFunctional{N}) where N = N
 
+"""
+    NDWeights{N, AT<:AbstractArray{T,N} where T}
+
+Weights not limited to 1 dimension.
+"""
+struct NDWeights{N, AT<:AbstractArray{T,N} where T}
+    values::AT
+end
+Base.getindex(w::NDWeights, args...) = getindex(w.values, args...)
+Base.length(w::NDWeights) = length(w.values)
+Base.size(w::NDWeights, args...) = size(w.values, args...)
+
 "U-statistics of order 2."
-function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVector{T}) where T<:BitStr
-    N = length(xs)
-    res = zero(stat.f(xs[1], xs[1]))
-    for i = 2:N
-        for j = 1:i-1
-            @inbounds res += stat.f(xs[i], xs[j])
+function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}) where T<:Integer
+    N = size(xs, 1)
+    res = map(1:size(xs, 2)) do b
+        res = zero(stat.f(xs[1], xs[1]))
+        for i = 2:N
+            for j = 1:i-1
+                @inbounds res += stat.f(xs[i,b], xs[j,b])
+            end
         end
+        res/binomial(N,2)
     end
-    res/binomial(N,2)
+    length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVector{T}, ys::AbstractVector{T}) where T<:BitStr
-    ci = CartesianIndices((length(xs), length(ys)))
-    @inbounds mapreduce(ind->stat.f(xs[ind[1]], ys[ind[2]]), +, ci)/length(ci)
+function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}, ys::AbstractVecOrMat{T}) where T<:Integer
+    ci = CartesianIndices((size(xs,1), size(ys,1)))
+    res = map(1:size(xs, 2)) do b
+        @inbounds mapreduce(ind->stat.f(xs[ind[1], b], ys[ind[2], b]), +, ci)/length(ci)
+    end
+    length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVector{T}, px::Weights, ys::AbstractVector{T}, py::Weights) where T<:BitStr
-    ci = CartesianIndices((length(xs), length(ys)))
-    @inbounds mapreduce(ind->px[ind[1]]*stat.f(xs[ind[1]], ys[ind[2]])*py[ind[2]], +, ci)
+function YaoBlocks.expect(stat::StatFunctional{2}, px::NDWeights, py::NDWeights=px)
+    Tx = BitStr64{log2dim1(px)}
+    Ty = BitStr64{log2dim1(py)}
+    ci = CartesianIndices((size(px,1), size(py,1)))
+    res = [@inbounds mapreduce(ind->px[ind[1], b]*stat.f(Tx(ind[1]-1), Ty(ind[2]-1))*py[ind[2], b], +, ci) for b in 1:size(px, 2)]
+    length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{2}, px::Weights, py::Weights=px)
-    expect(stat, basis(BitStr64{log2dim1(px)}), px, basis(BitStr64{log2dim1(py)}), py)
+function YaoBlocks.expect(stat::StatFunctional{1}, xs::AbstractVecOrMat{<:Integer})
+    res = mean(stat.f.(xs), dims=1)
+    ndims(res) == 1 ? res[1] : dropdims(res, dims=1)
 end
 
-YaoBlocks.expect(stat::StatFunctional{1}, xs::AbstractVector{<:BitStr}) = mean(stat.f.(xs))
-function YaoBlocks.expect(stat::StatFunctional{1}, px::Weights)
+function YaoBlocks.expect(stat::StatFunctional{1}, px::NDWeights)
     T = BitStr64{log2dim1(px)}
-    mapreduce(i->stat.f(T(i-1)) * px[i], +, 1:length(px))
+    res = [mapreduce(i->stat.f(T(i-1)) * px[i,b], +, 1:size(px,1)) for b in 1:size(px, 2)]
+    length(res) == 1 ? res[] : res
 end
 
-as_weights(probs::AbstractVector{T}) where T = Weights(probs, T(1))
+as_weights(probs::AbstractArray) = NDWeights(probs)
+as_weights(reg::ArrayReg) = reg |> probs |> as_weights
 
 """
     faithful_statdiff(stat::StatFunctional{2}, pair::Pair{<:ArrayReg,<:AbstractBlock})
@@ -75,16 +97,37 @@ end
 function (::Adjoint{Any,typeof(expect)})(stat::StatFunctional, circuit::Pair{<:ArrayReg, <:AbstractBlock})
     reg, c = circuit
     out = copy(reg) |> c
-    outδ = ArrayReg(4*witness(stat, out |> probs).*statevec(out))
+    outδ = ArrayReg(witness_vec(stat, out |> probs).*statevec(out))
     (in, inδ), paramsδ = apply_back((out, outδ), c)
     return outδ => paramsδ.*2
 end
 
-function witness(stat::StatFunctional{2}, probs)
+function witness_vec(stat::StatFunctional{2}, probs::AbstractVecOrMat)
     T = BitStr64{log2dim1(probs)}
-    map(i->mapreduce(j->stat.f(i, T(j-1))*probs[j], +, 1:length(probs)), basis(T))
+    Nb = size(probs,2)
+    Tv = typeof(stat.f(T(0), T(0)))
+    res = zeros(Tv, size(probs)...)
+    for b = 1:Nb
+        res[:,b] = map(i->2*mapreduce(j->stat.f(i, T(j-1))*probs[j,b], +, 1:size(probs,1)), basis(T))
+    end
+    return res
 end
 
-function witness(stat::StatFunctional{1}, probs)
-    stat.f.(basis(BitStr64{log2dim1(probs)}))
+function witness_vec(stat::StatFunctional{1}, probs::AbstractVecOrMat)
+    res = stat.f.(basis(BitStr64{log2dim1(probs)}))
+    if ndims(probs) == 2
+        return repeat(res, 1, size(probs,2))
+    end
+    return res
 end
+
+# several kernel functions
+export rbf_kernel, brbf_kernel, rbf_functional, brbf_functional
+rbf_kernel(x, y, σ::Real) = exp(-1/2σ * abs2(x-y))
+rbf_kernel(x::BitStr, y::BitStr, σ::Real) = exp(-1/2σ * abs2(buffer(x-y)))
+rbf_kernel(σ::Real) = (x, y) -> rbf_kernel(x, y, σ)
+brbf_kernel(x, y, σ::Real) = exp(-1/2σ * count_ones(x⊻y))
+brbf_kernel(σ::Real) = (x, y) -> brbf_kernel(x, y, σ)
+
+rbf_functional(σ::Real) = StatFunctional{2}(rbf_kernel(σ))
+brbf_functional(σ::Real) = StatFunctional{2}(brbf_kernel(σ))
