@@ -80,16 +80,16 @@ as_weights(reg::ArrayReg) = reg |> probs |> as_weights
 Differentiation for statistic functionals.
 """
 @inline function faithful_statdiff(stat::StatFunctional{2}, pair::Pair{<:ArrayReg,<:AbstractBlock})
-    initial = copy(pair.first) |> pair.second |> probs |> as_weights
+    initial = copy(pair.first) |> pair.second |> as_weights
     map(get_diffblocks(pair.second)) do diffblock
-        r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> probs |> as_weights, initial), diffblock, π/2)
+        r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> as_weights, initial), diffblock, π/2)
         (r2 - r1)*ndims(stat)/2
     end
 end
 
 @inline function faithful_statdiff(stat::StatFunctional{1}, pair::Pair{<:ArrayReg,<:AbstractBlock})
     map(get_diffblocks(pair.second)) do diffblock
-        r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> probs |> as_weights), diffblock, π/2)
+        r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> as_weights), diffblock, π/2)
         (r2 - r1)*ndims(stat)/2
     end
 end
@@ -120,14 +120,3 @@ function witness_vec(stat::StatFunctional{1}, probs::AbstractVecOrMat)
     end
     return res
 end
-
-# several kernel functions
-export rbf_kernel, brbf_kernel, rbf_functional, brbf_functional
-rbf_kernel(x, y, σ::Real) = exp(-1/2σ * abs2(x-y))
-rbf_kernel(x::BitStr, y::BitStr, σ::Real) = exp(-1/2σ * abs2(buffer(x-y)))
-rbf_kernel(σ::Real) = (x, y) -> rbf_kernel(x, y, σ)
-brbf_kernel(x, y, σ::Real) = exp(-1/2σ * count_ones(x⊻y))
-brbf_kernel(σ::Real) = (x, y) -> brbf_kernel(x, y, σ)
-
-rbf_functional(σ::Real) = StatFunctional{2}(rbf_kernel(σ))
-brbf_functional(σ::Real) = StatFunctional{2}(brbf_kernel(σ))

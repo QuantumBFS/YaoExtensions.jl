@@ -1,4 +1,5 @@
 using Test, Yao, YaoExtensions
+using YaoBlocks.Optimise: replace_block, to_basictypes, simplify
 
 @testset "gates" begin
     @test isunitary(FSimGate(0.5, 0.6))
