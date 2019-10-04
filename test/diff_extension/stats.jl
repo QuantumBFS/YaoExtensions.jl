@@ -44,7 +44,7 @@ end
         sample0 = measure(zero_state(nbit) |> c; nshots=5000)
         loss0 = expect(V, p0 |> as_weights)
         gradsn = numdiff(c->expect(V, zero_state(nbit; nbatch=nbatch) |> c |> as_weights), c)
-        gradse = faithful_statdiff(V, zero_state(nbit; nbatch=nbatch) => c)
+        gradse = faithful_grad(V, zero_state(nbit; nbatch=nbatch) => c)
         gradsa = expect'(V, zero_state(nbit; nbatch=nbatch) => c)[2]
         @test isapprox(gradse, gradsn, atol=1e-4)
         @test isapprox(sum.(gradse), gradsa, atol=1e-4)
@@ -63,7 +63,7 @@ end
         p0 = zero_state(nbit; nbatch=nbatch) |> c |> probs
         loss0 = expect(V, p0 |> as_weights)
         gradsn = numdiff(c->expect(V, zero_state(nbit; nbatch=nbatch) |> c |> as_weights), c)
-        gradse = faithful_statdiff(V, zero_state(nbit; nbatch=nbatch) => c)
+        gradse = faithful_grad(V, zero_state(nbit; nbatch=nbatch) => c)
         gradsa = expect'(V, zero_state(nbit; nbatch=nbatch) => c)[2]
         @test isapprox(gradse, gradsn, atol=1e-4)
         @test isapprox(sum.(gradse), gradsa, atol=1e-4)
@@ -85,7 +85,7 @@ end
         sample0 = measure(zero_state(nbit) |> c; nshots=5000)
         loss0 = expect(V, p0 |> as_weights)
         gradsn = numdiff(c->expect(V, zero_state(nbit; nbatch=nbatch) |> c |> as_weights), c)
-        gradse = faithful_mmddiff(V, zero_state(nbit; nbatch=nbatch) => c)
+        gradse = faithful_grad(V, zero_state(nbit; nbatch=nbatch) => c)
         gradsa = expect'(V, zero_state(nbit; nbatch=nbatch) => c)[2]
         @test isapprox(gradse, gradsn, atol=1e-3)
         @test isapprox(sum.(gradse), gradsa, atol=1e-3)

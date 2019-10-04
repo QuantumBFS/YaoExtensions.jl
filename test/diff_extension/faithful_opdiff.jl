@@ -25,7 +25,7 @@ using Test, Random
             θ2[i] += 0.5η
             g2[i] = (loss!(θ2) - loss!(θ1))/η |> real
         end
-        g3 = faithful_opdiff(op, ψ0 => circuit)
+        g3 = faithful_grad(op, ψ0 => circuit)
         g2_ = nbatch(ψ0) == 1 ? g2 : dropdims(sum(hcat(g2...); dims=1), dims=1)
 
         @test isapprox.(g1, g2_, atol=1e-4) |> all
@@ -48,19 +48,19 @@ end
         return res
     end
 
-    ed = faithful_opdiff(put(4, 1=>Z), zero_state(4) => c)
+    ed = faithful_grad(put(4, 1=>Z), zero_state(4) => c)
     @test isapprox(nd, ed, atol=1e-4)
 
     reg = rand_state(4)
     c = chain(put(4, 1=>Rx(0.5)), control(4, 1, 2=>Ry(0.5)), control(4, 1, 2=>shift(0.3)),  kron(4, 2=>Rz(0.3), 3=>Rx(0.7)))
     loss1z(c) = expect(kron(4, 1=>Z, 2=>X), copy(reg) |> c) |> real  # return loss please
     nd = numdiff(loss1z, c)
-    ed = faithful_opdiff(kron(4, 1=>Z, 2=>X), copy(reg) => c)
+    ed = faithful_grad(kron(4, 1=>Z, 2=>X), copy(reg) => c)
     @test isapprox(nd, ed, atol=1e-4)
 
     # the batched version
     reg = rand_state(4, nbatch=10)
-    ed2 = faithful_opdiff(kron(4, 1=>Z, 2=>X), copy(reg) => c)
+    ed2 = faithful_grad(kron(4, 1=>Z, 2=>X), copy(reg) => c)
     nd2 = numdiff(loss1z, c)
     @test isapprox(nd, ed, atol=1e-4)
 end
@@ -86,7 +86,7 @@ end
 
     # get num gradient
     nd = numdiff(loss1z, c)
-    ed = faithful_opdiff(op, copy(reg)=>c)
+    ed = faithful_grad(op, copy(reg)=>c)
 
     @test isapprox.(nd, ed, atol=1e-4) |> all
     @test isapprox.(nd, bd, atol=1e-4) |> all

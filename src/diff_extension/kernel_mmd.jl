@@ -9,7 +9,7 @@ brbf_kernel(σ::Real) = (x, y) -> brbf_kernel(x, y, σ)
 rbf_functional(σ::Real) = StatFunctional{2}(rbf_kernel(σ))
 brbf_functional(σ::Real) = StatFunctional{2}(brbf_kernel(σ))
 
-export MMD, rbf_mmd_loss, brbf_mmd_loss, faithful_mmddiff
+export MMD, rbf_mmd_loss, brbf_mmd_loss
 """
     MMD{T,FT,VT<:AbstractVector{T}}
     MMD(f, probs) -> MMD
@@ -36,7 +36,7 @@ function (::Adjoint{Any,typeof(expect)})(mmd::MMD, circuit::Pair{<:ArrayReg, <:A
     return outδ => paramsδ.*2
 end
 
-@inline function faithful_mmddiff(mmd::MMD, pair::Pair{<:ArrayReg,<:AbstractBlock})
+@inline function faithful_grad(mmd::MMD, pair::Pair{<:ArrayReg,<:AbstractBlock})
     stat = StatFunctional{2}(mmd.f)
     initial = probs(copy(pair.first) |> pair.second) .- mmd.probs
     wvec = witness_vec(stat, initial)

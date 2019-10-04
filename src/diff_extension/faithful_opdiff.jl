@@ -12,7 +12,7 @@ function get_diffblocks(circuit::AbstractBlock)
 end
 
 #### interface #####
-export numdiff, faithful_opdiff
+export numdiff, faithful_grad
 
 @inline function _perturb(func, gate::AbstractBlock, δ::Real)
     dispatch!(-, gate, (δ,))
@@ -45,11 +45,11 @@ Numeric differentiation a loss over a circuit, the loss take the circuit as inpu
 end
 
 """
-    faithful_opdiff(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock}) -> Vector
+    faithful_grad(x, pair::Pair{<:ArrayReg, <:AbstractBlock}) -> Vector
 
-Differentiate an operator expectation value over all parameters.
+Differentiate `x` over all parameters. `x` can be an `AbstractBlock`, `StatFunctional` or `MMD`.
 """
-@inline function faithful_opdiff(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock})
+@inline function faithful_grad(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock})
     map(get_diffblocks(pair.second)) do diffblock
         r1, r2 = _perturb(()->expect(op, copy(pair.first) |> pair.second) |> real, diffblock, π/2)
         (r2 - r1)/2

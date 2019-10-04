@@ -1,6 +1,6 @@
 using LinearAlgebra: Adjoint
 export as_weights
-export StatFunctional, faithful_statdiff
+export StatFunctional
 
 """
     StatFunctional{N, F}
@@ -74,12 +74,7 @@ end
 as_weights(probs::AbstractArray) = NDWeights(probs)
 as_weights(reg::ArrayReg) = reg |> probs |> as_weights
 
-"""
-    faithful_statdiff(stat::StatFunctional{2}, pair::Pair{<:ArrayReg,<:AbstractBlock})
-
-Differentiation for statistic functionals.
-"""
-@inline function faithful_statdiff(stat::StatFunctional{2}, pair::Pair{<:ArrayReg,<:AbstractBlock})
+@inline function faithful_grad(stat::StatFunctional{2}, pair::Pair{<:ArrayReg,<:AbstractBlock})
     initial = copy(pair.first) |> pair.second |> as_weights
     map(get_diffblocks(pair.second)) do diffblock
         r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> as_weights, initial), diffblock, π/2)
@@ -87,7 +82,7 @@ Differentiation for statistic functionals.
     end
 end
 
-@inline function faithful_statdiff(stat::StatFunctional{1}, pair::Pair{<:ArrayReg,<:AbstractBlock})
+@inline function faithful_grad(stat::StatFunctional{1}, pair::Pair{<:ArrayReg,<:AbstractBlock})
     map(get_diffblocks(pair.second)) do diffblock
         r1, r2 = _perturb(()->expect(stat, copy(pair.first) |> pair.second |> as_weights), diffblock, π/2)
         (r2 - r1)*ndims(stat)/2
