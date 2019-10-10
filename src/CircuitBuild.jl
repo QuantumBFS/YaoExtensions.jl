@@ -113,6 +113,8 @@ end
 
 variational_circuit(n::Int) = variational_circuit(n, 3, pair_ring(n))
 
+variational_circuit(nbit::Int, nlayer::Int) = variational_circuit(nbit, nlayer, pair_ring(nbit))
+
 ############### Completely random circuits (for testing and demo) ################
 randlocs(nbit::Int, mbit::Int) = sample(1:nbit, mbit, replace=false)
 const SINGLE_GATES = [X, Y, Z, H, Rx, Ry, Rz, shift, phase]
