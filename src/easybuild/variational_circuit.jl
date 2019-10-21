@@ -1,6 +1,6 @@
 using StatsBase: sample
 
-export pair_ring, pair_square, cnot_entangler
+export pair_ring, pair_square
 export rotor, merged_rotor, rotorset
 export variational_circuit
 export rand_single_gate, rand_gate, rand_circuit
@@ -49,14 +49,6 @@ function pair_square(m::Int, n::Int; periodic=false)
     res
 end
 
-"""
-    cnot_entangler([n::Int, ] pairs::Vector{Pair}) = ChainBlock
-
-Arbitrary rotation unit, support lazy construction.
-"""
-cnot_entangler(n::Int, pairs) = chain(n, control(n, [ctrl], target=>X) for (ctrl, target) in pairs)
-cnot_entangler(pairs) = n->cnot_entangler(n, pairs)
-
 ###################### rotor and rotorset #####################
 """
     merged_rotor(noleading::Bool=false, notrailing::Bool=false) -> ChainBlock{1, ComplexF64}
@@ -88,32 +80,39 @@ rotorset(::Val{:Split}, nbit::Int, noleading::Bool=false, notrailing::Bool=false
 rotorset(mode::Symbol, nbit::Int, noleading::Bool=false, notrailing::Bool=false) = rotorset(Val(mode), nbit, noleading, notrailing)
 
 """
-    variational_circuit(nbit, nlayer, pairs; mode=:Split, do_cache=false)
+    variational_circuit(nbit[, nlayer][, pairs]; mode=:Split, do_cache=false, entangler=cnot)
 
 A kind of widely used differentiable quantum circuit, angles in the circuit is randomely initialized.
+
+    * pairs: list of `Pair`s for entanglers in a layer, default to `pair_ring` structure,
+    * mode: :Split or :Merged,
+    * do_cache: cache the entangler matrix,
+    * entangler: a constructor returns a two qubit gate, `f(n,i,j) -> gate`.
+        The default value is `cnot(n,i,j)`.
 
 ref:
     1. Kandala, A., Mezzacapo, A., Temme, K., Takita, M., Chow, J. M., & Gambetta, J. M. (2017).
        Hardware-efficient Quantum Optimizer for Small Molecules and Quantum Magnets. Nature Publishing Group, 549(7671), 242–246.
        https://doi.org/10.1038/nature23879.
 """
-function variational_circuit(nbit, nlayer, pairs; mode=:Split, do_cache=false)
+function variational_circuit(nbit, nlayer, pairs; mode=:Split, do_cache=false, entangler=cnot)
     circuit = chain(nbit)
 
-    ent = cnot_entangler(pairs)
+    ent = chain(nbit, entangler(nbit, i, j) for (i, j) in pairs)
     if do_cache
         ent = ent |> cache
     end
+    has_param = nparameters(ent) != 0
     for i = 1:(nlayer + 1)
-        i!=1 && push!(circuit, ent)
+        i!=1 && push!(circuit, has_param ? deepcopy(ent) : ent)
         push!(circuit, rotorset(mode, nbit, i==1, i==nlayer+1))
     end
     circuit
 end
 
-variational_circuit(n::Int) = variational_circuit(n, 3, pair_ring(n))
+variational_circuit(n::Int; kwargs...) = variational_circuit(n, 3, pair_ring(n); kwargs...)
 
-variational_circuit(nbit::Int, nlayer::Int) = variational_circuit(nbit, nlayer, pair_ring(nbit))
+variational_circuit(nbit::Int, nlayer::Int; kwargs...) = variational_circuit(nbit, nlayer, pair_ring(nbit), kwargs...)
 
 ############### Completely random circuits (for testing and demo) ################
 randlocs(nbit::Int, mbit::Int) = sample(1:nbit, mbit, replace=false)
