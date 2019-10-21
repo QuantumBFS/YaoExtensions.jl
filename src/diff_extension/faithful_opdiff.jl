@@ -23,15 +23,6 @@ export numdiff, faithful_grad
     r1, r2
 end
 
-@inline function _perturb(func, gate::AbstractBlock, δ::Real)  # for put
-    dispatch!(-, gate, (δ,))
-    r1 = func()
-    dispatch!(+, gate, (2δ,))
-    r2 = func()
-    dispatch!(-, gate, (δ,))
-    r1, r2
-end
-
 """
     numdiff(loss, circuit::AbstractBlock, δ::Real=1e-2) => Vector
 

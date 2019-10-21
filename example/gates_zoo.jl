@@ -4,13 +4,13 @@ using YaoExtensions
 #using Latexify
 
 pretty_print_number(x; lengthonly=false) = pretty_print_number(stdout, x; lengthonly=lengthonly)
-function pretty_print_number(io, x; lengthonly=false)
+function pretty_print_number(io::IO, x; lengthonly=false)
     sx = string(x)
     lengthonly || print(io, sx)
     return length(sx)
 end
 
-function pretty_print_number(io, x::AbstractFloat; lengthonly=false)
+function pretty_print_number(io::IO, x::AbstractFloat; lengthonly=false)
     closest_int = round(Int, x)
     if isapprox(x, closest_int, atol=1e-12)
         si = string(closest_int)
@@ -23,7 +23,7 @@ function pretty_print_number(io, x::AbstractFloat; lengthonly=false)
     end
 end
 
-function pretty_print_number(io, x::Complex; atol::Real = 1e-12, lengthonly=false)
+function pretty_print_number(io::IO, x::Complex; atol::Real = 1e-12, lengthonly=false)
     l = 0
     if !isapprox(real(x), 0, atol=atol)
         l += pretty_print_number(io, real(x), lengthonly=lengthonly)
@@ -46,7 +46,7 @@ function pretty_print_number(io, x::Complex; atol::Real = 1e-12, lengthonly=fals
 end
 
 pretty_print_matrix(m) = pretty_print_matrix(stdout, m)
-function pretty_print_matrix(io, m)
+function pretty_print_matrix(io::IO, m)
     minlen = maximum(pretty_print_number.(m, lengthonly=true))+1
     for i in 1:size(m,1)
         print(io, "[")

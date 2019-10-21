@@ -1,7 +1,8 @@
 import YaoBlocks: render_params, chsubblocks, subblocks,
         mat, dispatch!, niparams, getiparams, setiparams!,
         cache_key, print_block, apply!,
-        ishermitian, isunitary, isreflexive
+        ishermitian, isunitary, isreflexive,
+        content, chcontent
 import Base: ==, copy, hash
 
 include("shortcuts.jl")

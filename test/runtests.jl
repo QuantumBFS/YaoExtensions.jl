@@ -13,3 +13,7 @@ end
 @testset "diff_extension" begin
     include("diff_extension/diffs.jl")
 end
+
+@testset "gatecount" begin
+    include("gatecount.jl")
+end
