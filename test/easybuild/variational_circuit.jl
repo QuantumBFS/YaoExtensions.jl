@@ -14,8 +14,6 @@ using Yao, YaoExtensions
     for item in [1=>2, 3=>4, 2=>1, 4=>3, 1=>3, 2=>4, 3=>1, 4=>2]
         @test item in ps
     end
-    @test cnot_entangler(4, ps) isa ChainBlock
-    @test cnot_entangler(4, ps) |> length == 8
 end
 
 @testset "random circuit" begin
@@ -38,4 +36,14 @@ end
     @test rotor(5, 2, true, true) |> length == 1
     @test rotor(5, 2, true, true) |> nqubits == 5
     @test collect_blocks(PutBlock{<:Any, <:Any, <:RotationGate}, rotorset(:Split, 5, true, false)) |> length == 10
+end
+
+@testset "entangler" begin
+    c = variational_circuit(5; entangler=(n,i,j)->put(n,(i,j)=>ConstGate.CZ))
+    @test nparameters(c) == 50
+    c = variational_circuit(5; entangler=(n,i,j)->put(n,(i,j)=>rot(ConstGate.CNOT, 0.0)))
+    @test nparameters(c) == 65
+    ps = randn(nparameters(c))
+    dispatch!(c, ps)
+    @test parameters(c) ≈ ps
 end
