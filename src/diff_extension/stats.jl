@@ -109,7 +109,7 @@ function witness_vec(stat::StatFunctional{2}, probs::AbstractVecOrMat)
 end
 
 function witness_vec(stat::StatFunctional{1}, probs::AbstractVecOrMat)
-    res = stat.f.(basis(BitStr64{log2dim1(probs)}))
+    res = map(stat.f, basis(BitStr64{log2dim1(probs)}))
     if ndims(probs) == 2
         return repeat(res, 1, size(probs,2))
     end
