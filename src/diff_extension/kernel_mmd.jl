@@ -41,7 +41,7 @@ end
     initial = probs(copy(pair.first) |> pair.second) .- mmd.probs
     wvec = witness_vec(stat, initial)
     map(get_diffblocks(pair.second)) do diffblock
-        r1, r2 = _perturb(()->dropdims(sum(probs(copy(pair.first) |> pair.second) .* wvec, dims=1), dims=1)/2, diffblock, π/2)
+        r1, r2 = _perturb(()->_dropdims(sum(probs(copy(pair.first) |> pair.second) .* wvec, dims=1), dims=1)/2, diffblock, π/2)
         (r2 - r1)*ndims(stat)/2
     end
 end

@@ -14,3 +14,7 @@ end
 @testset "google53" begin
     include("google53.jl")
 end
+
+@testset "general_U4" begin
+    include("general_U4.jl")
+end

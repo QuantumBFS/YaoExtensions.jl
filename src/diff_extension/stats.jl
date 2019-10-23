@@ -62,7 +62,7 @@ end
 
 function YaoBlocks.expect(stat::StatFunctional{1}, xs::AbstractVecOrMat{<:Integer})
     res = mean(stat.f.(xs), dims=1)
-    ndims(res) == 1 ? res[1] : dropdims(res, dims=1)
+    _dropdims(res, dims=1)
 end
 
 function YaoBlocks.expect(stat::StatFunctional{1}, px::NDWeights)
