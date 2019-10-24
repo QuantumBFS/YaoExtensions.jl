@@ -35,7 +35,7 @@ toffli (generic function with 1 method)
 
 julia> g = mathgate(3, toffli)
 ┌ Warning: `MathGate` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/dev/YaoBlocks/src/primitive/math_gate.jl:8
+└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/primitive/math_gate.jl:8
 mathgate(toffli; nbits=3)
 
 julia> apply!(r, g) == ArrayReg(bit"111")

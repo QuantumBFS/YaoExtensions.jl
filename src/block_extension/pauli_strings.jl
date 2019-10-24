@@ -21,7 +21,7 @@ Create a `PauliString` from some Pauli gates.
 ```jldoctest; setup=:(using YaoBlocks)
 julia> PauliString(X, Y, Z)
 ┌ Warning: `PauliString` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/dev/YaoBlocks/src/composite/pauli_strings.jl:8
+└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/composite/pauli_strings.jl:8
 nqubits: 3
 PauliString
 ├─ X gate
@@ -41,7 +41,7 @@ Create a `PauliString` from a list of Pauli gates.
 ```jldoctest; setup=:(using YaoBlocks)
 julia> PauliString([X, Y, Z])
 ┌ Warning: `PauliString` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/dev/YaoBlocks/src/composite/pauli_strings.jl:8
+└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/composite/pauli_strings.jl:8
 nqubits: 3
 PauliString
 ├─ X gate
