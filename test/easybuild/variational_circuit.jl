@@ -14,8 +14,6 @@ using Yao, YaoExtensions
     for item in [1=>2, 3=>4, 2=>1, 4=>3, 1=>3, 2=>4, 3=>1, 4=>2]
         @test item in ps
     end
-    @test cnot_entangler(4, ps) isa ChainBlock
-    @test cnot_entangler(4, ps) |> length == 8
 end
 
 @testset "random circuit" begin
@@ -40,32 +38,12 @@ end
     @test collect_blocks(PutBlock{<:Any, <:Any, <:RotationGate}, rotorset(:Split, 5, true, false)) |> length == 10
 end
 
-@testset "random diff circuit" begin
-    c = variational_circuit(4, 3, [1=>3, 2=>4, 2=>3, 4=>1])
-    rots = collect_blocks(RotationGate, c)
-    @test length(rots) == nparameters(c) == 40
-    @test dispatch!(+, c, ones(40)*0.1) |> parameters == ones(40)*0.1
-    @test dispatch!(+, c, :random) |> parameters != ones(40)*0.1
-
-    nbit = 4
-    c = variational_circuit(nbit, 1, pair_ring(nbit), mode=:Split) |> autodiff(:BP)
-    reg = rand_state(4)
-    dispatch!(c, randn(nparameters(c)))
-
-    dbs = collect_blocks(Diff, c)
-    op = kron(4, 1=>Z, 2=>X)
-    loss1z() = expect(op, copy(reg) |> c)  # return loss please
-
-    # back propagation
-    ψ = copy(reg) |> c
-    δ = copy(ψ) |> op
-    bd = Float64[]
-    backward!((ψ, δ), c, bd)
-
-    # get num gradient
-    nd = numdiff.(loss1z, dbs)
-    ed = opdiff.(()->copy(reg)|>c, dbs, Ref(op))
-
-    @test isapprox.(nd, ed, atol=1e-4) |> all
-    @test isapprox.(nd, bd, atol=1e-4) |> all
+@testset "entangler" begin
+    c = variational_circuit(5; entangler=(n,i,j)->put(n,(i,j)=>ConstGate.CZ))
+    @test nparameters(c) == 50
+    c = variational_circuit(5; entangler=(n,i,j)->put(n,(i,j)=>rot(ConstGate.CNOT, 0.0)))
+    @test nparameters(c) == 65
+    ps = randn(nparameters(c))
+    dispatch!(c, ps)
+    @test parameters(c) ≈ ps
 end

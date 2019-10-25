@@ -13,13 +13,13 @@ mutable struct Bag{N}<:TagBlock{AbstractBlock, N}
 end
 Bag(b::AbstractBlock) = Bag(b,true)
 
-Yao.content(bag) = bag.content
-Yao.chcontent(bag::Bag, content) = Bag(content)
-Yao.mat(bag::Bag{N}) where N = bag.mask ? mat(bag.content) : IMatrix{1<<N}()
-Yao.apply!(reg::AbstractRegister, bag::Bag) = bag.mask ? apply!(reg, bag.content) : reg
-Yao.ishermitian(bag::Bag) = bag.mask ? ishermitian(bag.content) : true
-Yao.isreflexive(bag::Bag) = bag.mask ? isreflexive(bag.content) : true
-Yao.isunitary(bag::Bag) = bag.mask ? isunitary(bag.content) : true
+YaoBlocks.content(bag) = bag.content
+YaoBlocks.chcontent(bag::Bag, content) = Bag(content)
+YaoBlocks.mat(bag::Bag{N}) where N = bag.mask ? mat(bag.content) : IMatrix{1<<N}()
+YaoBlocks.apply!(reg::AbstractRegister, bag::Bag) = bag.mask ? apply!(reg, bag.content) : reg
+YaoBlocks.ishermitian(bag::Bag) = bag.mask ? ishermitian(bag.content) : true
+YaoBlocks.isreflexive(bag::Bag) = bag.mask ? isreflexive(bag.content) : true
+YaoBlocks.isunitary(bag::Bag) = bag.mask ? isunitary(bag.content) : true
 YaoBlocks.occupied_locs(bag::Bag) = bag.mask ? occupied_locs(bag.content) : ()
 setcontent!(bag::Bag, content) = (bag.content = content; bag)
 disable_block!(b::Bag) = (b.mask = false; b)
