@@ -25,8 +25,8 @@ function rand_supremacy2d(nx::Int, ny::Int, depth::Int; seed=1)
         ent = entanglers[mod1(i,length(entanglers))]
         unit = chain(nbits, [ent])
         occ = occupied_locs(ent)
-        for loc in setdiff(pre_occ, setdiff(1:nbits, occ))
-            g1 = rand(setdiff(gateset, (pre_gates[loc],)))
+        for loc in setdiff(pre_occ, occ)
+            g1 = hastgate[loc] ? rand(setdiff(gateset, (pre_gates[loc],))) : (hastgate[loc]=true; T)
             push!(unit, put(nbits, loc=>g1))
             pre_gates[loc] = g1
         end

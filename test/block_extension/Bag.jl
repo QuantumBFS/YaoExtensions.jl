@@ -33,4 +33,10 @@ using Test, YaoExtensions, Yao
     @test mat(bag) == mat(Z)
     @test ishermitian(bag)
     @test occupied_locs(bag) == (1,)
+
+    # parameters
+    b = Bag(Rx(0.5))
+    @test nparameters(b) == length(parameters(b)) == 1
+    disable_block!(b)
+    @test nparameters(b) == length(parameters(b)) == 0
 end
