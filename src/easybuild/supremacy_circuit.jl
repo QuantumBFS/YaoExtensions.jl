@@ -7,7 +7,7 @@ control-Z entangler.
 cz_entangler(n::Int, pairs) = chain(n, control(n, [ctrl], target=>Z) for (ctrl, target) in pairs)
 
 """
-    rand_supremacy2d(nx::Int, ny::Int, depth::Int) -> AbstactBlock
+    rand_supremacy2d(nx::Int, ny::Int, depth::Int; seed=1) -> AbstactBlock
 
 random supremacy circuit.
 
@@ -21,6 +21,7 @@ function rand_supremacy2d(nx::Int, ny::Int, depth::Int; seed=1)
     c = chain(nbits, repeat(nbits, H, 1:nbits))
     pre_occ = (1:nbits...,)
     pre_gates = Vector{PrimitiveBlock}(fill(H,nbits))
+    hastgate = zeros(Bool, nbits)
     for i=1:depth-2
         ent = entanglers[mod1(i,length(entanglers))]
         unit = chain(nbits, [ent])
