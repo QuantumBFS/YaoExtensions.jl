@@ -61,7 +61,7 @@ Single qubit arbitrary rotation unit, set parameters notrailing, noleading true 
     circuit with back-propagation (`:BP`) mode (just because we are lazy to implement it!).
     But is a welcoming component in quantum differentiation.
 """
-merged_rotor(noleading::Bool=false, notrailing::Bool=false) = noleading ? (notrailing ? Rx(0) : chain(Rx(0), Rz(0))) : (notrailing ? chain(Rz(0), Rx(0)) : chain(Rz(0), Rx(0), Rz(0)))
+merged_rotor(noleading::Bool=false, notrailing::Bool=false) = noleading ? (notrailing ? Rx(0.0) : chain(Rx(0.0), Rz(0.0))) : (notrailing ? chain(Rz(0.0), Rx(0.0)) : chain(Rz(0.0), Rx(0.0), Rz(0.0)))
 
 """
     rotor(nbit::Int, ibit::Int, noleading::Bool=false, notrailing::Bool=false) -> ChainBlock{nbit, ComplexF64}

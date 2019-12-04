@@ -91,3 +91,25 @@ end
     @test isapprox.(nd, ed, atol=1e-4) |> all
     @test isapprox.(nd, bd, atol=1e-4) |> all
 end
+
+@testset "random diff circuit" begin
+    nbit = 3
+    c = put(nbit, (1,2)=>general_U4())
+    reg = zero_state(nbit) |> repeat(nbit,Rx(0.3),1:nbit)
+
+    op = kron(nbit, 1=>Z)
+    loss1z(c) = expect(op, reg => c)  # return loss please
+
+    # back propagation
+    _, bd = expect'(op, reg=>c)
+
+    # get num gradient
+    nd = numdiff(loss1z, c)
+    ed = faithful_grad(op, copy(reg)=>c)
+    md = mat_back!(ComplexF64, c, outerprod(statevec(copy(reg) |> c |> op), conj(statevec(reg))), [])
+    #md = mat_back!(ComplexF64, c, outerprod(reg, copy(reg) |> c |> op), [])
+
+    @test isapprox.(nd, ed, atol=1e-4) |> all
+    @test isapprox.(nd, bd, atol=1e-4) |> all
+    @test isapprox.(nd, md.*2, atol=1e-4) |> all
+end

@@ -26,10 +26,10 @@ end
 end
 
 @testset "rotter, collect_blocks, num_gradient, opgrad" begin
-    @test  merged_rotor(true, true) == Rx(0)
-    @test  merged_rotor(false, false) == merged_rotor() == chain(Rz(0), Rx(0), Rz(0))
-    @test  merged_rotor(false, true) == chain(Rz(0), Rx(0))
-    @test  merged_rotor(true, false) == chain(Rx(0), Rz(0))
+    @test  merged_rotor(true, true) == Rx(0.0)
+    @test  merged_rotor(false, false) == merged_rotor() == chain(Rz(0.0), Rx(0.0), Rz(0.0))
+    @test  merged_rotor(false, true) == chain(Rz(0.0), Rx(0.0))
+    @test  merged_rotor(true, false) == chain(Rx(0.0), Rz(0.0))
     @test collect_blocks(RotationGate, rotorset(:Merged, 5, true, false)) |> length == 10
 
     @test rotor(5, 2, true, true) isa ChainBlock
