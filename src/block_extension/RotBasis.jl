@@ -86,3 +86,5 @@ basis_rotor(::XGate) = Ry(-0.5π)
 basis_rotor(::YGate) = Rx(0.5π)
 
 basis_rotor(basis::PauliGate, nbit, locs) = repeat(nbit, basis_rotor(basis), locs)
+
+YaoBlocks.@dumpload_fallback RotBasis RotBasis
