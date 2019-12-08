@@ -1,20 +1,50 @@
-export QFTBlock
+export QFT
+using YaoBlocks
+using YaoBase
+using BitBasis
+using YaoArrayRegister
+using LinearAlgebra
+using FFTW
 
-struct QFTBlock{N} <: PrimitiveBlock{N} end
-mat(::Type{T}, q::QFTBlock{N}) where {T, N} = T.(applymatrix(q))
+"""
+    QFT{N} <: PrimitiveBlock{N}
 
-apply!(reg::DefaultRegister{B}, ::QFTBlock) where B = (reg.state = ifft!(invorder_firstdim(reg |> state), 1)*sqrt(1<<nactive(reg)); reg)
-apply!(reg::DefaultRegister{B}, ::Daggered{N, <:QFTBlock}) where {B,N} = (reg.state = invorder_firstdim(fft!(reg|>state, 1)/sqrt(1<<nactive(reg))); reg)
+Quantum Fourier Transform node. See also [`qft_circuit`](@ref).
+"""
+struct QFT{N} <: PrimitiveBlock{N} end
 
-# traits
-ishermitian(q::QFTBlock{N}) where N = N==1
-isreflexive(q::QFTBlock{N}) where N = N==1
-isunitary(q::QFTBlock{N}) where N = true
+"""
+    qft(n)
 
-function print_block(io::IO, pb::QFTBlock{N}) where N
-    printstyled(io, "QFT(1-$N)"; bold=true, color=:blue)
+Create a Quantum Fourier Transform block. See also [`qft_circuit`](@ref).
+"""
+qft(n) = QFT{n}()
+
+mat(::Type{T}, q::QFT{N}) where {T, N} = T.(applymatrix(q))
+
+function apply!(r::ArrayReg{B}, ::QFT) where B
+    α = sqrt(1 << nactive(r))
+    invorder!(r)
+    lmul!(α, ifft!(statevec(r)))
+    return r
 end
 
-function print_block(io::IO, pb::Daggered{N,<:QFTBlock}) where {N, T}
-    printstyled(io, "IQFT(1-$N)"; bold=true, color=:blue)
+function apply!(r::ArrayReg{B}, ::Daggered{N, <:QFT}) where {B,N}
+    α = sqrt(1 << nactive(r))
+    invorder!(r)
+    lmul!(α, fft!(statevec(r)))
+    return r
+end
+
+# traits
+ishermitian(q::QFT{N}) where N = N==1
+isreflexive(q::QFT{N}) where N = N==1
+isunitary(q::QFT{N}) where N = true
+
+function print_block(io::IO, pb::QFT{N}) where N
+    printstyled(io, "qft(1-$N)"; bold=true, color=:blue)
+end
+
+function print_block(io::IO, pb::Daggered{N,<:QFT}) where {N, T}
+    printstyled(io, "iqft(1-$N)"; bold=true, color=:blue)
 end
