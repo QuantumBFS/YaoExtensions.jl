@@ -23,6 +23,14 @@ export numdiff, faithful_grad
     r1, r2
 end
 
+@inline function _expect(op::AbstractBlock, reg::ArrayReg; nshots=nothing)
+    if nshots === nothing
+        expect(op, reg)
+    else
+        mean(measure(op, copy(reg); nshots=nshots))
+    end
+end
+
 """
     numdiff(loss, circuit::AbstractBlock, δ::Real=1e-2) => Vector
 
@@ -33,16 +41,16 @@ Numeric differentiation a loss over a circuit, the loss take the circuit as inpu
         r1, r2 = _perturb(()->loss(circuit), diffblock, δ)
         (r2 - r1)/2δ
     end
-end
+end 
 
 """
-    faithful_grad(x, pair::Pair{<:ArrayReg, <:AbstractBlock}) -> Vector
+    faithful_grad(x, pair::Pair{<:ArrayReg, <:AbstractBlock}; nshots=nothing) -> Vector
 
 Differentiate `x` over all parameters. `x` can be an `AbstractBlock`, `StatFunctional` or `MMD`.
 """
-@inline function faithful_grad(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock})
+@inline function faithful_grad(op::AbstractBlock, pair::Pair{<:ArrayReg, <:AbstractBlock}; nshots=nothing)
     map(get_diffblocks(pair.second)) do diffblock
-        r1, r2 = _perturb(()->expect(op, copy(pair.first) |> pair.second) |> real, diffblock, π/2)
+        r1, r2 = _perturb(()->_expect(op, copy(pair.first) |> pair.second; nshots=nothing) |> real, diffblock, π/2)
         (r2 - r1)/2
     end
 end

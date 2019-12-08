@@ -113,3 +113,17 @@ end
     @test isapprox.(nd, bd, atol=1e-4) |> all
     @test isapprox.(nd, md.*2, atol=1e-4) |> all
 end
+
+@testset "grad backward forward" begin
+    n = 4 
+    d = 5 
+    h = heisenberg(n)
+    circuit = dispatch!(variational_circuit(n, d),:random)
+    
+    _, grad_backward = expect'(h, zero_state(n) => circuit)
+    grad_forward = faithful_grad(h, zero_state(n) => circuit)
+    grad_nshots = faithful_grad(h, zero_state(n) => circuit; nshots=1000)
+ 
+    @test isapprox.(grad_backward, grad_forward, atol=1e-4) |> all
+    @test isapprox.(grad_backward, grad_nshots, atol=1e-4) |> all
+end
