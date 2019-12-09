@@ -122,8 +122,12 @@ end
     
     _, grad_backward = expect'(h, zero_state(n) => circuit)
     grad_forward = faithful_grad(h, zero_state(n) => circuit)
-    grad_nshots = faithful_grad(h, zero_state(n) => circuit; nshots=1000)
- 
-    @test isapprox.(grad_backward, grad_forward, atol=1e-4) |> all
-    @test isapprox.(grad_backward, grad_nshots, atol=1e-4) |> all
+    grad_nshots = faithful_grad(h, zero_state(n) => circuit; nshots=10000)
+    
+    @show grad_backward 
+    @show grad_forward 
+    @show grad_nshots
+
+    @test isapprox.(grad_backward, grad_forward, atol=1e-6) |> all
+    @test isapprox.(grad_backward, grad_nshots, rtol=1e-1) |> all
 end

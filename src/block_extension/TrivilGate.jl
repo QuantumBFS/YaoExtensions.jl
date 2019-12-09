@@ -3,7 +3,7 @@ export TrivilGate, Wait
 abstract type TrivilGate{N} <: PrimitiveBlock{N} end
 
 mat(d::TrivilGate{N}) where N = IMatrix{1<<N}()
-apply!(reg::DefaultRegister, d::TrivilGate) = reg
+apply!(reg::ArrayReg, d::TrivilGate) = reg
 Base.adjoint(g::TrivilGate) = g
 
 """
