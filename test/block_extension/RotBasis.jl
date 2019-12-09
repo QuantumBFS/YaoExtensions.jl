@@ -28,6 +28,7 @@ using Yao, YaoExtensions
     @test parameters(rb)[1] == 0
     dispatch!(rb, :random)
     @test parameters(rb)[1] != 0
+    @test eval(YaoBlocks.parse_ex(dump_gate(rb), 1)) == rb
 end
 
 @testset "polar and u" begin

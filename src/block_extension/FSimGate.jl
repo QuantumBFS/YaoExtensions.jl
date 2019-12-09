@@ -26,3 +26,5 @@ function YaoBlocks.setiparams!(fs::FSimGate{T}, θ, ϕ) where T
     fs.phi = ϕ
     return fs
 end
+
+YaoBlocks.@dumpload_fallback FSimGate FSimGate
