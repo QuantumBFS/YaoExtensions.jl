@@ -3,8 +3,8 @@ export QFTBlock
 struct QFTBlock{N} <: PrimitiveBlock{N} end
 mat(::Type{T}, q::QFTBlock{N}) where {T, N} = T.(applymatrix(q))
 
-apply!(reg::DefaultRegister{B}, ::QFTBlock) where B = (reg.state = ifft!(invorder_firstdim(reg |> state), 1)*sqrt(1<<nactive(reg)); reg)
-apply!(reg::DefaultRegister{B}, ::Daggered{N, <:QFTBlock}) where {B,N} = (reg.state = invorder_firstdim(fft!(reg|>state, 1)/sqrt(1<<nactive(reg))); reg)
+apply!(reg::ArrayReg{B}, ::QFTBlock) where B = (reg.state = ifft!(invorder_firstdim(reg |> state), 1)*sqrt(1<<nactive(reg)); reg)
+apply!(reg::ArrayReg{B}, ::Daggered{N, <:QFTBlock}) where {B,N} = (reg.state = invorder_firstdim(fft!(reg|>state, 1)/sqrt(1<<nactive(reg))); reg)
 
 # traits
 ishermitian(q::QFTBlock{N}) where N = N==1
