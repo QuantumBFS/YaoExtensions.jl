@@ -95,7 +95,7 @@ end
 
 function rand_google53_layer(lattice, pattern)
     nbit = nbits(lattice)
-    chain(chain([put(nbit, i=>rand([SqrtW, SqrtX, SqrtY])) for i=1:nbit]),
-        chain([entangler_google53(nbit,i,j) for (i,j) in pattern53(lattice, pattern)])
+    chain(nbit, chain(nbit, [put(nbit, i=>rand([SqrtW, SqrtX, SqrtY])) for i=1:nbit]),
+        chain(nbit, [entangler_google53(nbit,i,j) for (i,j) in pattern53(lattice, pattern)])
         )
 end

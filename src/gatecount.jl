@@ -1,7 +1,7 @@
 export gatecount
 
 gatecount(blk::AbstractBlock) = gatecount!(blk, Dict{Type{<:AbstractBlock}, Int}())
-function gatecount!(c::Union{ChainBlock, KronBlock, PauliString, PutBlock, Bag, Concentrator, Sequence, CachedBlock}, storage::AbstractDict)
+function gatecount!(c::Union{ChainBlock, KronBlock, PauliString, PutBlock, Bag, Add, Subroutine, Sequence, CachedBlock}, storage::AbstractDict)
     (gatecount!.(c |> subblocks, Ref(storage)); storage)
 end
 
