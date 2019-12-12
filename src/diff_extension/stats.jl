@@ -30,7 +30,7 @@ Base.length(w::NDWeights) = length(w.values)
 Base.size(w::NDWeights, args...) = size(w.values, args...)
 
 "U-statistics of order 2."
-function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}) where T<:Integer
+function Yao.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}) where T<:Integer
     N = size(xs, 1)
     res = map(1:size(xs, 2)) do b
         res = zero(stat.f(xs[1], xs[1]))
@@ -44,7 +44,7 @@ function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}) wher
     length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}, ys::AbstractVecOrMat{T}) where T<:Integer
+function Yao.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}, ys::AbstractVecOrMat{T}) where T<:Integer
     ci = CartesianIndices((size(xs,1), size(ys,1)))
     res = map(1:size(xs, 2)) do b
         @inbounds mapreduce(ind->stat.f(xs[ind[1], b], ys[ind[2], b]), +, ci)/length(ci)
@@ -52,7 +52,7 @@ function YaoBlocks.expect(stat::StatFunctional{2}, xs::AbstractVecOrMat{T}, ys::
     length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{2}, px::NDWeights, py::NDWeights=px)
+function Yao.expect(stat::StatFunctional{2}, px::NDWeights, py::NDWeights=px)
     Tx = BitStr64{log2dim1(px)}
     Ty = BitStr64{log2dim1(py)}
     ci = CartesianIndices((size(px,1), size(py,1)))
@@ -60,12 +60,12 @@ function YaoBlocks.expect(stat::StatFunctional{2}, px::NDWeights, py::NDWeights=
     length(res) == 1 ? res[] : res
 end
 
-function YaoBlocks.expect(stat::StatFunctional{1}, xs::AbstractVecOrMat{<:Integer})
+function Yao.expect(stat::StatFunctional{1}, xs::AbstractVecOrMat{<:Integer})
     res = mean(stat.f.(xs), dims=1)
     _dropdims(res, dims=1)
 end
 
-function YaoBlocks.expect(stat::StatFunctional{1}, px::NDWeights)
+function Yao.expect(stat::StatFunctional{1}, px::NDWeights)
     T = BitStr64{log2dim1(px)}
     res = [mapreduce(i->stat.f(T(i-1)) * px[i,b], +, 1:size(px,1)) for b in 1:size(px, 2)]
     length(res) == 1 ? res[] : res

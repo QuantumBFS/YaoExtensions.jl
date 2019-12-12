@@ -1,6 +1,5 @@
 export Sequence
-import YaoBlocks: subblocks, chsubblocks, apply!
-using YaoBlocks: _check_size
+using Yao.YaoBlocks: _check_size
 
 struct Sequence <: CompositeBlock{Any}
     blocks::Vector
@@ -8,10 +7,10 @@ end
 
 Sequence(args...) = Sequence(collect(AbstractBlock, args))
 
-subblocks(seq::Sequence) = filter(x->x isa AbstractBlock, seq.blocks)
-chsubblocks(pb::Sequence, blocks::Vector) = Sequence(blocks)
+Yao.subblocks(seq::Sequence) = filter(x->x isa AbstractBlock, seq.blocks)
+Yao.chsubblocks(pb::Sequence, blocks::Vector) = Sequence(blocks)
 
-function apply!(reg::ArrayReg, seq::Sequence)
+function Yao.apply!(reg::ArrayReg, seq::Sequence)
     for x in seq.blocks
         reg |> x
     end

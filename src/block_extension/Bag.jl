@@ -8,12 +8,12 @@ Including `mat`, `apply!`, `ishermitian`, `isreflexive`, `isunitary`,
 """
 abstract type AbstractBag{BT, N}<:TagBlock{BT, N} end
 
-YaoBlocks.mat(::Type{T}, bag::AbstractBag{N}) where {T,N} = mat(T, content(bag))
-YaoBlocks.apply!(reg::AbstractRegister, bag::AbstractBag) = apply!(reg, content(bag))
-YaoBlocks.ishermitian(bag::AbstractBag) = ishermitian(content(bag))
-YaoBlocks.isreflexive(bag::AbstractBag) = isreflexive(content(bag))
-YaoBlocks.isunitary(bag::AbstractBag) = isunitary(content(bag))
-YaoBlocks.occupied_locs(bag::AbstractBag) = occupied_locs(content(bag))
+Yao.mat(::Type{T}, bag::AbstractBag{N}) where {T,N} = mat(T, content(bag))
+Yao.apply!(reg::AbstractRegister, bag::AbstractBag) = apply!(reg, content(bag))
+Yao.ishermitian(bag::AbstractBag) = ishermitian(content(bag))
+Yao.isreflexive(bag::AbstractBag) = isreflexive(content(bag))
+Yao.isunitary(bag::AbstractBag) = isunitary(content(bag))
+Yao.occupied_locs(bag::AbstractBag) = occupied_locs(content(bag))
 
 function Yao.AD.apply_back!(state, b::AbstractBag, collector)
     Yao.AD.apply_back!(state, content(b), collector)
@@ -37,14 +37,14 @@ mutable struct Bag{N}<:AbstractBag{AbstractBlock, N}
 end
 Bag(b::AbstractBlock) = Bag(b,true)
 
-YaoBlocks.content(bag::Bag{N}) where N = bag.mask ? bag.content : put(N, 1=>I2)
-YaoBlocks.chcontent(bag::Bag, content) = Bag(content)
+Yao.content(bag::Bag{N}) where N = bag.mask ? bag.content : put(N, 1=>I2)
+Yao.chcontent(bag::Bag, content) = Bag(content)
 setcontent!(bag::Bag, content) = (bag.content = content; bag)
 disable_block!(b::Bag) = (b.mask = false; b)
 enable_block!(b::Bag) = (b.mask = true; b)
 isenabled(b::Bag) = b.mask
 
-function YaoBlocks.print_annotation(io::IO, bag::Bag)
+function Yao.print_annotation(io::IO, bag::Bag)
     printstyled(io, isenabled(bag) ? "[⊙] " : "[⊗] "; bold=true, color=isenabled(bag) ? :green : :red)
 end
 

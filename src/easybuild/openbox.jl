@@ -5,8 +5,8 @@ export openbox
 
 For a black box, like QFTBlock, you can get its white box (faithful simulation) using this function.
 """
-openbox(q::QFTBlock{N}) where N = QFTCircuit(N)
-openbox(q::Daggered{<:QFTBlock, N}) where {N} = QFTCircuit(N)'
+openbox(q::QFT{N}) where N = qft_circuit(N)
+openbox(q::Daggered{<:QFT, N}) where {N} = qft_circuit(N)'
 
 function openbox(fs::FSimGate)
     if fs.theta ≈ π/2

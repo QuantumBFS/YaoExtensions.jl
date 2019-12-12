@@ -1,5 +1,5 @@
 using Yao, YaoExtensions
-using Test, YaoArrayRegister
+using Test
 
 @test_throws ErrorException YaoExtensions.PauliString([X, Y, H])
 

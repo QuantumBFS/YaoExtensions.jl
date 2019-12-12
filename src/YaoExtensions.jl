@@ -1,7 +1,10 @@
 module YaoExtensions
 
 using LuxurySparse
-using Yao, YaoBlocks.ConstGate, BitBasis
+using BitBasis
+using Yao
+using Yao: YaoBlocks, YaoArrayRegister
+using .YaoBlocks.ConstGate
 
 include("Miscellaneous.jl")
 

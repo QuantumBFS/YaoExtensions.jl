@@ -43,29 +43,27 @@ Create a [`ReflectGate`](@ref) with an quantum state vector `v`.
 
 # Example
 
-```jldoctest; setup=:(using YaoBlocks; using YaoArrayRegister)
+```julia
 julia> reflect(rand_state(3))
-┌ Warning: `ReflectGate` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/primitive/reflect_gate.jl:19
 reflect(ArrayReg{1, Complex{Float64}, Array...})
 ```
 """
 reflect(v::AbstractVector{<:Complex}) = ReflectGate(v)
 
-function apply!(r::ArrayReg, g::ReflectGate{N, T, <:ArrayReg}) where {N, T}
+function Yao.apply!(r::ArrayReg, g::ReflectGate{N, T, <:ArrayReg}) where {N, T}
     v = state(g.psi)
     r.state .= 2 .* (v' * r.state) .* v - r.state
     return r
 end
 
 # target type is the same with block's
-function mat(::Type{T}, r::ReflectGate{N, T}) where {N, T}
+function Yao.mat(::Type{T}, r::ReflectGate{N, T}) where {N, T}
     v = statevec(r.psi)
     return 2 * v * v' - IMatrix(length(v))
 end
 
 # different
-function mat(::Type{T1}, r::ReflectGate{N, T2}) where {N, T1, T2}
+function Yao.mat(::Type{T1}, r::ReflectGate{N, T2}) where {N, T1, T2}
     M = mat(T2, r)
     return copyto!(similar(M, T1), M)
 end

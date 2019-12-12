@@ -13,35 +13,35 @@ end
 _make_rot_mat(I, block, theta) = I * cos(theta / 2) - im * sin(theta / 2) * block
 # chain -> *
 # mat(rb::RotBasis{T}) where T = mat(Ry(-rb.theta))*mat(Rz(-rb.phi))
-function mat(::Type{TM}, x::RotBasis{T}) where {TM, T}
+function Yao.mat(::Type{TM}, x::RotBasis{T}) where {TM, T}
     R1 = _make_rot_mat(IMatrix{2, Complex{T}}(), mat(TM, Z), -x.phi)
     R2 = _make_rot_mat(IMatrix{2, Complex{T}}(), mat(TM, Y), -x.theta)
     R2 * R1
 end
 
-==(rb1::RotBasis, rb2::RotBasis) = rb1.theta == rb2.theta && rb1.phi == rb2.phi
+Base.:(==)(rb1::RotBasis, rb2::RotBasis) = rb1.theta == rb2.theta && rb1.phi == rb2.phi
 
-copy(block::RotBasis{T}) where T = RotBasis{T}(block.theta, block.phi)
-dispatch!(block::RotBasis, params::Vector) = ((block.theta, block.phi) = params; block)
+Base.copy(block::RotBasis{T}) where T = RotBasis{T}(block.theta, block.phi)
+Yao.dispatch!(block::RotBasis, params::Vector) = ((block.theta, block.phi) = params; block)
 
-getiparams(rb::RotBasis) = (rb.theta, rb.phi)
-function setiparams!(rb::RotBasis, θ::Real, ϕ::Real)
+Yao.getiparams(rb::RotBasis) = (rb.theta, rb.phi)
+function Yao.setiparams!(rb::RotBasis, θ::Real, ϕ::Real)
     rb.theta, rb.phi = θ, ϕ
     rb
 end
-niparams(::Type{<:RotBasis}) = 2
-niparams(::RotBasis) = 2
-render_params(r::RotBasis, ::Val{:random}) = rand()*π, rand()*2π
+Yao.niparams(::Type{<:RotBasis}) = 2
+Yao.niparams(::RotBasis) = 2
+Yao.render_params(r::RotBasis, ::Val{:random}) = rand()*π, rand()*2π
 
-function print_block(io::IO, R::RotBasis)
+function Yao.print_block(io::IO, R::RotBasis)
     print(io, "RotBasis($(R.theta), $(R.phi))")
 end
 
-function hash(gate::RotBasis, h::UInt)
+function Base.hash(gate::RotBasis, h::UInt)
     hash(hash(gate.theta, gate.phi, objectid(gate)), h)
 end
 
-cache_key(gate::RotBasis) = (gate.theta, gate.phi)
+Yao.cache_key(gate::RotBasis) = (gate.theta, gate.phi)
 
 rot_basis(num_bit::Int) = dispatch!(chain(num_bit, put(i=>RotBasis(0.0, 0.0)) for i=1:num_bit), randpolar(num_bit) |> vec)
 
@@ -87,4 +87,4 @@ basis_rotor(::YGate) = Rx(0.5π)
 
 basis_rotor(basis::PauliGate, nbit, locs) = repeat(nbit, basis_rotor(basis), locs)
 
-YaoBlocks.@dumpload_fallback RotBasis RotBasis
+Yao.YaoBlocks.@dumpload_fallback RotBasis RotBasis

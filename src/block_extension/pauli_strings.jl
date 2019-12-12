@@ -18,10 +18,8 @@ Create a `PauliString` from some Pauli gates.
 
 # Example
 
-```jldoctest; setup=:(using YaoBlocks)
+```julia
 julia> PauliString(X, Y, Z)
-┌ Warning: `PauliString` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/composite/pauli_strings.jl:8
 nqubits: 3
 PauliString
 ├─ X gate
@@ -38,10 +36,8 @@ Create a `PauliString` from a list of Pauli gates.
 
 # Example
 
-```jldoctest; setup=:(using YaoBlocks)
+```julia
 julia> PauliString([X, Y, Z])
-┌ Warning: `PauliString` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/composite/pauli_strings.jl:8
 nqubits: 3
 PauliString
 ├─ X gate
@@ -58,13 +54,13 @@ function PauliString(xs::Vector)
     return PauliString(SizedVector{length(xs), PauliGate}(xs))
 end
 
-subblocks(ps::PauliString) = ps.blocks
-chsubblocks(pb::PauliString, blocks::Vector) = PauliString(blocks)
-chsubblocks(pb::PauliString, it) = PauliString(collect(it))
+Yao.subblocks(ps::PauliString) = ps.blocks
+Yao.chsubblocks(pb::PauliString, blocks::Vector) = PauliString(blocks)
+Yao.chsubblocks(pb::PauliString, it) = PauliString(collect(it))
 
 Yao.occupied_locs(ps::PauliString) = (findall(x->!(x isa I2Gate), ps.blocks)...,)
 
-cache_key(ps::PauliString) = map(cache_key, ps.blocks)
+Yao.cache_key(ps::PauliString) = map(cache_key, ps.blocks)
 
 Yao.ishermitian(::PauliString) = true
 Yao.isreflexive(::PauliString) = true
@@ -93,7 +89,7 @@ xgates(ps::PauliString{N}) where N = RepeatedBlock{N}(X, (findall(x->x isa XGate
 ygates(ps::PauliString{N}) where N = RepeatedBlock{N}(Y, (findall(x->x isa YGate, (ps.blocks...,))...,))
 zgates(ps::PauliString{N}) where N = RepeatedBlock{N}(Z, (findall(x->x isa ZGate, (ps.blocks...,))...,))
 
-function apply!(reg::AbstractRegister, ps::PauliString)
+function Yao.apply!(reg::AbstractRegister, ps::PauliString)
     _check_size(reg, ps)
     for pauligates in [xgates, ygates, zgates]
         blk = pauligates(ps)
@@ -102,12 +98,12 @@ function apply!(reg::AbstractRegister, ps::PauliString)
     return reg
 end
 
-function mat(::Type{T}, ps::PauliString) where T
+function Yao.mat(::Type{T}, ps::PauliString) where T
     return mat(T, xgates(ps)) * mat(T, ygates(ps)) * mat(T, zgates(ps))
 end
 
-function YaoBlocks.print_block(io::IO, x::PauliString)
+function Yao.print_block(io::IO, x::PauliString)
     printstyled(io, "PauliString"; bold=true, color=color(PauliString))
 end
 
-YaoBlocks.color(::Type{T}) where {T <: PauliString} = :cyan
+Yao.color(::Type{T}) where {T <: PauliString} = :cyan

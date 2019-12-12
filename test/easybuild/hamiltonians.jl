@@ -1,7 +1,7 @@
 using Yao
 using Test
 using YaoExtensions
-using YaoBlocks: ConstGate
+using Yao.ConstGate
 
 @testset "solving hamiltonian" begin
     nbit = 8

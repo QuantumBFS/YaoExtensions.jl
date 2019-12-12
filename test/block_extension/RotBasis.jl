@@ -1,6 +1,7 @@
 using Test, Random, LinearAlgebra
 
 using Yao, YaoExtensions
+using Yao.YaoBlocks: parse_ex
 
 @testset "RotBasis" begin
     rt = RotBasis(0.5, 0.4)
@@ -28,7 +29,7 @@ using Yao, YaoExtensions
     @test parameters(rb)[1] == 0
     dispatch!(rb, :random)
     @test parameters(rb)[1] != 0
-    @test eval(YaoBlocks.parse_ex(dump_gate(rb), 1)) == rb
+    @test eval(parse_ex(dump_gate(rb), 1)) == rb
 end
 
 @testset "polar and u" begin

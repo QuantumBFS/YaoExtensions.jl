@@ -1,5 +1,5 @@
 using Yao, YaoExtensions
-using Test, YaoArrayRegister, LinearAlgebra
+using Test, LinearAlgebra
 
 @testset "test reflect gate" begin
     reg0 = rand_state(3)

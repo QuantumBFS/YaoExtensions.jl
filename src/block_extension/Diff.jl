@@ -12,15 +12,16 @@ struct Diff{GT, N} <: TagBlock{GT, N}
         new{typeof(content), N}(content)
     end
 end
-content(cb::Diff) = cb.content
-chcontent(cb::Diff, blk::AbstractBlock) = Diff(blk)
-YaoBlocks.PropertyTrait(::Diff) = YaoBlocks.PreserveAll()
 
-apply!(reg::AbstractRegister, db::Diff) = apply!(reg, content(db))
-mat(::Type{T}, df::Diff) where T = mat(T, df.content)
+Yao.content(cb::Diff) = cb.content
+Yao.chcontent(cb::Diff, blk::AbstractBlock) = Diff(blk)
+Yao.PropertyTrait(::Diff) = Yao.PreserveAll()
+
+Yao.apply!(reg::AbstractRegister, db::Diff) = apply!(reg, content(db))
+Yao.mat(::Type{T}, df::Diff) where T = mat(T, df.content)
 Base.adjoint(df::Diff) = chcontent(df, content(df)')
 
-function YaoBlocks.print_annotation(io::IO, df::Diff)
+function Yao.print_annotation(io::IO, df::Diff)
     printstyled(io, "[∂] "; bold=true, color=:yellow)
 end
 
@@ -45,4 +46,4 @@ function markdiff(blk::AbstractBlock)
     isempty(blks) ? blk : chsubblocks(blk, markdiff.(blks))
 end
 
-YaoBlocks.AD.mat_back!(::Type{T}, db::Diff, adjm::AbstractMatrix, collector) where T = AD.mat_back!(T, content(db), adjm, collector)
+Yao.AD.mat_back!(::Type{T}, db::Diff, adjm::AbstractMatrix, collector) where T = AD.mat_back!(T, content(db), adjm, collector)
