@@ -1,5 +1,5 @@
 using Yao, YaoExtensions
-using YaoBlocks.ConstGate
+using Yao.ConstGate
 using LinearAlgebra, Test, Random
 using Yao.AD: Rotor, generator
 
