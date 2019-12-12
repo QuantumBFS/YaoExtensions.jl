@@ -22,7 +22,7 @@ Lazy curried version of `mathgate`.
 
 We can make a classical toffoli gate on quantum register.
 
-```jldoctest; setup=:(using YaoBlocks, YaoArrayRegister, BitBasis)
+```julia
 julia> r = ArrayReg(bit"110")
 ArrayReg{1, Complex{Float64}, Array...}
     active qubits: 3/3
@@ -34,8 +34,6 @@ julia> function toffli(b::BitStr)
 toffli (generic function with 1 method)
 
 julia> g = mathgate(3, toffli)
-┌ Warning: `MathGate` will be moved to `YaoExtensions.jl` in the next release.
-└ @ YaoBlocks ~/.julia/packages/YaoBlocks/XXC9Y/src/primitive/math_gate.jl:8
 mathgate(toffli; nbits=3)
 
 julia> apply!(r, g) == ArrayReg(bit"111")
@@ -46,7 +44,7 @@ true
 mathgate(nbits::Int, f) = MathGate{nbits}(f)
 mathgate(f::Union{LegibleLambda, Function}) = @λ(nbits->matgate(nbits, f))
 
-function apply!(r::ArrayReg, m::MathGate{N, F}) where {N, F}
+function Yao.apply!(r::ArrayReg, m::MathGate{N, F}) where {N, F}
     nstate = zero(r.state)
     for b in basis(BitStr64{N})
         b2 = m.f(b)
@@ -57,7 +55,7 @@ function apply!(r::ArrayReg, m::MathGate{N, F}) where {N, F}
 end
 
 # TODO: use trait to correct this
-function mat(::Type{T}, m::MathGate{N}) where {T, N}
+function Yao.mat(::Type{T}, m::MathGate{N}) where {T, N}
     L = 1<<N
     vals = zeros(T, L)
     perm = zeros(Int, L)

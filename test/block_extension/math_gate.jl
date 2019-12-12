@@ -1,5 +1,5 @@
 using Yao, YaoExtensions
-using Test, YaoArrayRegister, BitBasis
+using Test, BitBasis
 
 function toffli(b::BitStr)
     t = @inbounds b[1] ⊻ (b[3] & b[2])

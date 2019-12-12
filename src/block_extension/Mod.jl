@@ -1,6 +1,6 @@
 # TODO
 # compile Mod and KMod to elementary gates.
-
+using Yao.YaoBlocks: _check_size
 export Mod, KMod
 
 """
@@ -29,8 +29,8 @@ struct Mod{N} <: PrimitiveBlock{N}
     end
 end
 
-function apply!(reg::ArrayReg{B}, m::Mod{N}) where {B, N}
-    YaoBlocks._check_size(reg, m)
+function Yao.apply!(reg::ArrayReg{B}, m::Mod{N}) where {B, N}
+    _check_size(reg, m)
     nstate = zero(reg.state)
     for i in basis(reg)
         _i = i >= m.L ? i+1 : mod(i*m.a, m.L)+1
@@ -81,7 +81,7 @@ function bint2_reader(T, k::Int)
 end
 
 function Yao.apply!(reg::ArrayReg{B}, m::KMod{N, K}) where {B, N, K}
-    YaoBlocks._check_size(reg, m)
+    _check_size(reg, m)
     nstate = zero(reg.state)
 
     reader = bint2_reader(Int, K)

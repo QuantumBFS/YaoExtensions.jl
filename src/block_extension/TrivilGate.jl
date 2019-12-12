@@ -2,8 +2,8 @@ export TrivilGate, Wait
 
 abstract type TrivilGate{N} <: PrimitiveBlock{N} end
 
-mat(d::TrivilGate{N}) where N = IMatrix{1<<N}()
-apply!(reg::ArrayReg, d::TrivilGate) = reg
+Yao.mat(d::TrivilGate{N}) where N = IMatrix{1<<N}()
+Yao.apply!(reg::ArrayReg, d::TrivilGate) = reg
 Base.adjoint(g::TrivilGate) = g
 
 """
@@ -16,7 +16,7 @@ struct Wait{N, T} <: TrivilGate{N}
     t::T
     Wait{N}(t::T) where {N,T} = new{N, T}(t)
 end
-YaoBlocks.print_block(io::IO, d::Wait) = print(io, "Wait → $(d.t)")
+Yao.print_block(io::IO, d::Wait) = print(io, "Wait → $(d.t)")
 
 export EchoBlock
 struct EchoBlock{N,OT<:IO} <: PrimitiveBlock{N}

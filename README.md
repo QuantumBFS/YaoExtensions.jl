@@ -16,7 +16,7 @@ Extensions for Yao.
 
 #### Block extensions
 * Diff: differentiable node. See [example/port_zygote](example/port_zygote.jl) as a using example.
-* Bag: a trivil container block that gives the flexibility to change the sub-block, as well as masking. Mainly used for structure learning.
+* Bag: a trivial container block that gives the flexibility to change the sub-block, as well as masking. Mainly used for structure learning.
 * ConditionBlock: conditional control the excusion of two block.
 * Sequence: similar to chain block, but more general, one can put anything inside.
 * RotBasis: basis rotor, make measurements on different basis easier.

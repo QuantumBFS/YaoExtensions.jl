@@ -1,6 +1,6 @@
 using Test
 @testset "QFTBlock" begin
-    include("QFTBlock.jl")
+    include("qft.jl")
 end
 
 @testset "RotBasis" begin

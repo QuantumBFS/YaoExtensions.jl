@@ -21,7 +21,7 @@ struct MMD{T,FT,VT<:AbstractVector{T}}
     probs::VT
 end
 
-function YaoBlocks.expect(mmd::MMD, px::NDWeights, py::NDWeights=px)
+function Yao.expect(mmd::MMD, px::NDWeights, py::NDWeights=px)
     px_ = NDWeights(px.values .- mmd.probs)
     py_ = NDWeights(py.values .- mmd.probs)
     expect(StatFunctional{2}(mmd.f), px_, py_)
