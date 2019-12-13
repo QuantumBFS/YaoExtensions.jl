@@ -1,7 +1,7 @@
 include("shortcuts.jl")
 include("sequence.jl")
 include("Diff.jl")
-include("TrivilGate.jl")
+include("TrivialGate.jl")
 include("Bag.jl")
 include("Mod.jl")
 include("ConditionBlock.jl")
