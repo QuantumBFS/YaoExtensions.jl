@@ -16,6 +16,10 @@ end
     general_U4([params...]) -> AbstractBlock
 
 A general two qubits gate decomposed to (CNOT, Ry, Rz), parameters default to 0.
+
+!!!note
+
+    Although the name is U(4), This is actually a SU(4) gate up to a phase, the phase `det(dispatch!(general_U4(), :random))` is fixed to -1.
 """
 general_U4() = general_U4(zeros(15))
 function general_U4(params)
