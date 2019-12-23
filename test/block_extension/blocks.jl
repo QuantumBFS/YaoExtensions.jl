@@ -20,7 +20,7 @@ end
 end
 
 @testset "TrivilGate" begin
-    include("TrivilGate.jl")
+    include("TrivialGate.jl")
 end
 
 @testset "ConditionBlock" begin

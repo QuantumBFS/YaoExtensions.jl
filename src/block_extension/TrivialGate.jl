@@ -1,18 +1,18 @@
-export TrivilGate, Wait
+export TrivialGate, Wait
 
-abstract type TrivilGate{N} <: PrimitiveBlock{N} end
+abstract type TrivialGate{N} <: PrimitiveBlock{N} end
 
-Yao.mat(d::TrivilGate{N}) where N = IMatrix{1<<N}()
-Yao.apply!(reg::ArrayReg, d::TrivilGate) = reg
-Base.adjoint(g::TrivilGate) = g
+Yao.mat(d::TrivialGate{N}) where N = IMatrix{1<<N}()
+Yao.apply!(reg::ArrayReg, d::TrivialGate) = reg
+Base.adjoint(g::TrivialGate) = g
 
 """
-    Wait{N, T} <: TrivilGate{N}
+    Wait{N, T} <: TrivialGate{N}
     Wait{N}(t)
 
 Wait the experimental signals for time `t` (empty run).
 """
-struct Wait{N, T} <: TrivilGate{N}
+struct Wait{N, T} <: TrivialGate{N}
     t::T
     Wait{N}(t::T) where {N,T} = new{N, T}(t)
 end
