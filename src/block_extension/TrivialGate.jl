@@ -1,10 +1,4 @@
-export TrivialGate, Wait
-
-abstract type TrivialGate{N} <: PrimitiveBlock{N} end
-
-Yao.mat(d::TrivialGate{N}) where N = IMatrix{1<<N}()
-Yao.apply!(reg::ArrayReg, d::TrivialGate) = reg
-Base.adjoint(g::TrivialGate) = g
+export Wait
 
 """
     Wait{N, T} <: TrivialGate{N}

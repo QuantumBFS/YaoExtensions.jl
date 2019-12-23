@@ -19,7 +19,7 @@ end
     include("Bag.jl")
 end
 
-@testset "TrivilGate" begin
+@testset "TrivialGate" begin
     include("TrivialGate.jl")
 end
 
