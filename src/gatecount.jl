@@ -26,4 +26,4 @@ function gatecount!(c::Union{PrimitiveBlock, Daggered, ControlBlock, ConditionBl
     storage
 end
 
-gatecount!(c::TrivilGate, storage::AbstractDict) = storage
+gatecount!(c::TrivialGate, storage::AbstractDict) = storage

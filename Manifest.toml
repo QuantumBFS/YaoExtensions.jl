@@ -29,9 +29,9 @@ version = "0.2.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ed2c4abadf84c53d9e58510b5fc48912c2336fbb"
+git-tree-sha1 = "0caaa696071d6e7872ddf30e58ed6ec0b49954c4"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.2.0"
+version = "3.0.0"
 
 [[Conda]]
 deps = ["JSON", "VersionParsing"]
@@ -111,9 +111,11 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[LuxurySparse]]
 deps = ["FillArrays", "LinearAlgebra", "Random", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "565d26c2c9751eb4545790b5d33c2ca5f37d5fbd"
+git-tree-sha1 = "0f235c9bf23d2d834b698d2eec5b7f818f67e42f"
+repo-rev = "master"
+repo-url = "https://github.com/QuantumBFS/LuxurySparse.jl.git"
 uuid = "d05aeea4-b7d4-55ac-b691-9e7fabb07ba2"
-version = "0.5.2"
+version = "0.5.3"
 
 [[MLStyle]]
 git-tree-sha1 = "67f9a88611bc79f992aa705d9bbc833a2547dec7"
@@ -258,39 +260,36 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[VersionParsing]]
-deps = ["Compat"]
-git-tree-sha1 = "c9d5aa108588b978bd859554660c8a5c4f2f7669"
+git-tree-sha1 = "80229be1f670524750d905f8fc8148e5a8c4537f"
 uuid = "81def892-9a0e-5fdd-b105-ffc91e053289"
-version = "1.1.3"
+version = "1.2.0"
 
 [[Yao]]
 deps = ["BitBasis", "Reexport", "YaoArrayRegister", "YaoBase", "YaoBlocks", "YaoSym"]
-git-tree-sha1 = "5c17f079fbe84496a0562d652014facec8024744"
-repo-rev = "master"
-repo-url = "https://github.com/QuantumBFS/Yao.jl.git"
+git-tree-sha1 = "ab05fe31154fdb8c7d38f51a1d101f03fcb689f1"
 uuid = "5872b779-8223-5990-8dd0-5abbb0748c8c"
-version = "0.6.0-DEV"
+version = "0.6.0"
 
 [[YaoArrayRegister]]
 deps = ["BitBasis", "LinearAlgebra", "LuxurySparse", "Random", "StaticArrays", "StatsBase", "TupleTools", "YaoBase"]
-git-tree-sha1 = "4d6f92ede4ff28ddbc761bbd6338382d1ade57cb"
+git-tree-sha1 = "17145aaecf9e21e2c8898dadf2b6234508d345d0"
 uuid = "e600142f-9330-5003-8abb-0ebd767abc51"
-version = "0.6.0"
+version = "0.6.1"
 
 [[YaoBase]]
 deps = ["BitBasis", "LegibleLambdas", "LinearAlgebra", "LuxurySparse", "MLStyle", "MacroTools", "Random", "SparseArrays", "Test", "TupleTools"]
-git-tree-sha1 = "f4044dc22a811cf5526c612486cf8230179600cc"
+git-tree-sha1 = "c27382a06f5b920d24c326d89bed3b9aed2f62d0"
 uuid = "a8f54c17-34bc-5a9d-b050-f522fe3f755f"
-version = "0.13.1"
+version = "0.13.2"
 
 [[YaoBlocks]]
 deps = ["BitBasis", "CacheServers", "ExponentialUtilities", "InteractiveUtils", "LegibleLambdas", "LinearAlgebra", "LuxurySparse", "MLStyle", "Random", "SimpleTraits", "SparseArrays", "StaticArrays", "StatsBase", "TupleTools", "YaoArrayRegister", "YaoBase"]
-git-tree-sha1 = "18876d38aa09f8a68cdf80a1dc7947581af5e18c"
+git-tree-sha1 = "1eac8e92cded09e48f9f25c78562ec0e2020e201"
 uuid = "418bc28f-b43b-5e0b-a6e7-61bbc1a2c1df"
-version = "0.8.1"
+version = "0.10.1"
 
 [[YaoSym]]
 deps = ["BitBasis", "LinearAlgebra", "LuxurySparse", "SparseArrays", "SymEngine", "YaoArrayRegister", "YaoBase", "YaoBlocks"]
-git-tree-sha1 = "29d890923b96243c84d32a6acaa5233f2c2aa332"
+git-tree-sha1 = "09821c86dcd7b145d79f9deefc969e9062b6b43d"
 uuid = "3b27209a-d3d6-11e9-3c0f-41eb92b2cb9d"
-version = "0.3.1"
+version = "0.3.3"
