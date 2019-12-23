@@ -7,3 +7,5 @@
 docs/build/
 docs/site/
 _local/
+
+Manifest.toml
