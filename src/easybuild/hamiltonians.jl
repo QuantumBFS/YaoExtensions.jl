@@ -6,12 +6,9 @@ export heisenberg, transverse_ising
 1D heisenberg hamiltonian, for its ground state, refer `PRB 48, 6141`.
 """
 function heisenberg(nbit::Int; periodic::Bool=true)
-    sx = i->put(nbit, i=>X)
-    sy = i->put(nbit, i=>Y)
-    sz = i->put(nbit, i=>Z)
     map(1:(periodic ? nbit : nbit-1)) do i
         j=i%nbit+1
-        sx(i)*sx(j)+sy(i)*sy(j)+sz(i)*sz(j)
+        repeat(nbit,X,(i,j)) + repeat(nbit, Y, (i,j)) + repeat(nbit, Z, (i,j))
     end |> sum
 end
 
@@ -21,12 +18,8 @@ end
 1D transverse ising hamiltonian.
 """
 function transverse_ising(nbit::Int; periodic::Bool=true)
-    sx = i->put(nbit, i=>X)
-    sz = i->put(nbit, i=>Z)
     ising_term = map(1:(periodic ? nbit : nbit-1)) do i
-        j=i%nbit+1
-        sz(i)*sz(j)
+        repeat(nbit,Z,(i,i%nbit+1))
     end |> sum
-
-    ising_term + sum(map(sx, 1:nbit))
+    ising_term + sum(map(i->put(nbit,i=>X), 1:nbit))
 end
