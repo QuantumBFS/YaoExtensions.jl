@@ -10,20 +10,29 @@ Extensions for [Yao](https://github.com/QuantumBFS/Yao.jl).
 ## List of features
 #### Easy constructions
 * variational_circuit(n): construct a random parametrized circuit.
-* heisenberg(n): construct a heisenberg hamiltonian.
 * rand_supremacy2d(nx, ny, depth): construct a quantum supremacy circuit.
-* `QFT`(n): construct a quantum fourier transformation circuit.
+* qft_circuit(n): construct a quantum fourier transformation circuit.
+* rand_google53(): construct a Google's 53 qubit supremacy circuit.
+
+* general_U4(): an optimal decomposition of a U(4) gate.
+* cphase(nbit, i, j), cz(nbit, i, j)
+
+* heisenberg(n): construct a heisenberg hamiltonian.
+* transverse_ising(n): construct a transverse field Ising hamiltonian.
 
 #### Block extensions
-* Diff: differentiable node. See [example/port_zygote](example/port_zygote.jl) as a using example.
+* SqrtX, SqrtY, FSim, ISWAP, SqrtW
 * Bag: a trivial container block that gives the flexibility to change the sub-block, as well as masking. Mainly used for structure learning.
 * ConditionBlock: conditional control the excusion of two block.
 * Sequence: similar to chain block, but more general, one can put anything inside.
 * RotBasis: basis rotor, make measurements on different basis easier.
+* MathGate: classical mathematic functions.
+* ReflectGate: used in grover search,
+* PauliString: a paulistring.
 
 * Mod: modulo operation block.
-* QFTBlock: faster way of simulating QFT, instead of running QFT circuit faithfully, simulate it with classical `fft` (thus much faster).
+* QFT: faster implementation of QFT subroutine, instead of running QFT circuit faithfully, simulate it with classical `fft` (thus much faster).
 
 #### Utlities
-* timer, timing a circuit excution time (experimental feature!),
 * gatecount, count the number of gates,
+* faithful simulation of gradients, including observable loss and MMD loss
