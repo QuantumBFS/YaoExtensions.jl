@@ -15,13 +15,13 @@ end
 
 Yao.content(cb::Diff) = cb.content
 Yao.chcontent(cb::Diff, blk::AbstractBlock) = Diff(blk)
-Yao.PropertyTrait(::Diff) = Yao.PreserveAll()
+Yao.YaoBlocks.PropertyTrait(::Diff) = Yao.PreserveAll()
 
 Yao.apply!(reg::AbstractRegister, db::Diff) = apply!(reg, content(db))
 Yao.mat(::Type{T}, df::Diff) where T = mat(T, df.content)
 Base.adjoint(df::Diff) = chcontent(df, content(df)')
 
-function Yao.print_annotation(io::IO, df::Diff)
+function Yao.YaoBlocks.print_annotation(io::IO, df::Diff)
     printstyled(io, "[∂] "; bold=true, color=:yellow)
 end
 
