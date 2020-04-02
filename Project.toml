@@ -1,7 +1,7 @@
 name = "YaoExtensions"
 uuid = "7a06699c-c960-11e9-3c98-9f78548b5f0f"
 authors = ["JinGuo Liu", "XiuZhe Luo"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 BitBasis = "50ba71b6-fa0f-514d-ae9a-0916efc90dcf"
@@ -18,7 +18,7 @@ Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 BitBasis = "0.6"
 FFTW = "1.1,1.2"
 LegibleLambdas = "0.2"
-LuxurySparse = "0.5.3"
+LuxurySparse = "0.5, 0.6"
 StaticArrays = "0.12"
 StatsBase = "0.32"
 Yao = "0.6"
