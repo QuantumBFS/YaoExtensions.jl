@@ -1,4 +1,5 @@
 using Yao, YaoExtensions, Yao.AD
+using Yao.AD: mat_back!
 using Yao.AD: generator
 using Test, Random
 
