@@ -31,7 +31,8 @@ function Yao.apply!(r::ArrayReg, ::Daggered{<:QFT})
     # (reg.state = invorder_firstdim(fft!(reg|>state, 1)/sqrt(1<<nactive(reg))); reg)
     α = sqrt(1 << nactive(r))
     st = state(r)
-    rdiv!(fft!(st, 1), α)
+    fft!(st, 1)
+    st ./= α
     invorder!(r)
     return r
 end
