@@ -1,22 +1,10 @@
-export gatecount
+import Yao: gatecount
 
-gatecount(blk::AbstractBlock) = gatecount!(blk, Dict{Type{<:AbstractBlock}, Int}())
-function gatecount!(c::Union{ChainBlock, KronBlock, PauliString, PutBlock, Bag, Add, Subroutine, Sequence, CachedBlock}, storage::AbstractDict)
+function gatecount!(c::Union{PauliString, Bag, Sequence}, storage::AbstractDict)
     (gatecount!.(c |> subblocks, Ref(storage)); storage)
 end
 
-function gatecount!(c::RepeatedBlock, storage::AbstractDict)
-    k = typeof(content(c))
-    n = length(c.locs)
-    if haskey(storage, k)
-        storage[k] += n
-    else
-        storage[k] = n
-    end
-    storage
-end
-
-function gatecount!(c::Union{PrimitiveBlock, Daggered, ControlBlock, ConditionBlock}, storage::AbstractDict)
+function gatecount!(c::ConditionBlock, storage::AbstractDict)
     k = typeof(c)
     if haskey(storage, k)
         storage[k] += 1
