@@ -11,6 +11,6 @@ using Random, Test
     @test isunitary(block)
     @test getiparams(block) == ()
 
-    @test EchoBlock()(5) isa EchoBlock{5, Base.TTY}
+    @test EchoBlock()(5) isa EchoBlock
     @test EchoBlock()(5).sym == :ECHO
 end
