@@ -1,8 +1,7 @@
-export cphase, cz, ISWAP, SqrtX, SqrtY, SqrtW
+export cphase, ISWAP, SqrtX, SqrtY, SqrtW
 export ISWAPGate, SqrtXGate, SqrtYGate, SqrtWGate
 
 cphase(nbits, i::Int, j::Int, θ::T) where T = control(nbits, i, j=>shift(θ))
-cz(nbits, i::Int, j::Int) = control(nbits, i, j=>Z)
 const CPhaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
 
 @const_gate ISWAP = PermMatrix([1,3,2,4], [1,1.0im,1.0im,1])
