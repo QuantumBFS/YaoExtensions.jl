@@ -17,7 +17,7 @@ Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 [compat]
 BitBasis = "0.7"
 FFTW = "1.1,1.2"
-LegibleLambdas = "0.2"
+LegibleLambdas = "0.2, 0.3"
 LuxurySparse = "0.6"
 StaticArrays = "0.12"
 StatsBase = "0.32, 0.33"
