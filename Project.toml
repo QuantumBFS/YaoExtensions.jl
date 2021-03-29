@@ -21,7 +21,7 @@ LegibleLambdas = "0.2, 0.3"
 LuxurySparse = "0.6"
 StaticArrays = "0.12, 1.0"
 StatsBase = "0.32, 0.33"
-Yao = "0.6,0.7"
+Yao = "0.6, 0.7"
 julia = "1"
 
 [extras]
