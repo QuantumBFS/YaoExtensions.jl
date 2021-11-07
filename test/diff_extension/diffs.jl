@@ -5,3 +5,7 @@ end
 @testset "stats diff" begin
     include("stats.jl")
 end
+
+@testset "chainrules_patch" begin
+    include("chainrules_patch.jl")
+end
