@@ -44,7 +44,7 @@ true
 mathgate(nbits::Int, f) = MathGate{nbits}(f)
 mathgate(f::Union{LegibleLambda, Function}) = @λ(nbits->matgate(nbits, f))
 
-function Yao.apply!(r::ArrayReg, m::MathGate{N, F}) where {N, F}
+function _apply!(r::ArrayReg, m::MathGate{N, F}) where {N, F}
     nstate = zero(r.state)
     for b in basis(BitStr64{N})
         b2 = m.f(b)

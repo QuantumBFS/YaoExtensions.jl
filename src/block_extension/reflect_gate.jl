@@ -50,7 +50,7 @@ reflect(ArrayReg{1, Complex{Float64}, Array...})
 """
 reflect(v::AbstractVector{<:Complex}) = ReflectGate(v)
 
-function Yao.apply!(r::ArrayReg, g::ReflectGate{N, T, <:ArrayReg}) where {N, T}
+function _apply!(r::ArrayReg, g::ReflectGate{N, T, <:ArrayReg}) where {N, T}
     v = state(g.psi)
     r.state .= 2 .* (v' * r.state) .* v - r.state
     return r

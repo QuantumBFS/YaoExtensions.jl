@@ -13,7 +13,7 @@ end
 Yao.subblocks(c::ConditionBlock) = (c.m, c.block_true, c.block_false)
 Yao.chsubblocks(c::ConditionBlock, blocks) = ConditionBlock(blocks...)
 
-function Yao.apply!(reg::AbstractRegister{B}, c::ConditionBlock) where B
+function _apply!(reg::AbstractRegister{B}, c::ConditionBlock) where B
     if !isdefined(c.m, :results)
         println("Conditioned on a measurement that has not been performed.")
         throw(UndefRefError())
