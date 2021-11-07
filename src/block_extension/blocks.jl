@@ -1,3 +1,4 @@
+import .YaoBlocks: _apply!
 include("shortcuts.jl")
 include("sequence.jl")
 include("Diff.jl")

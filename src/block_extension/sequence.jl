@@ -1,5 +1,4 @@
 export Sequence
-using Yao.YaoBlocks: _check_size
 
 struct Sequence <: CompositeBlock{Any}
     blocks::Vector

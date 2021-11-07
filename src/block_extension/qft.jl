@@ -19,7 +19,7 @@ qft(n) = QFT{n}()
 
 Yao.mat(::Type{T}, q::QFT{N}) where {T, N} = T.(applymatrix(q))
 
-function Yao.apply!(r::ArrayReg, x::QFT)
+function _apply!(r::ArrayReg, x::QFT)
     α = sqrt(1<<nactive(r))
     st = state(invorder!(r))
     ifft!(st, 1)
@@ -27,7 +27,7 @@ function Yao.apply!(r::ArrayReg, x::QFT)
     return r
 end
 
-function Yao.apply!(r::ArrayReg, ::Daggered{<:QFT})
+function _apply!(r::ArrayReg, ::Daggered{<:QFT})
     # (reg.state = invorder_firstdim(fft!(reg|>state, 1)/sqrt(1<<nactive(reg))); reg)
     α = sqrt(1 << nactive(r))
     st = state(r)

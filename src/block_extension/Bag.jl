@@ -9,7 +9,7 @@ Including `mat`, `apply!`, `ishermitian`, `isreflexive`, `isunitary`,
 abstract type AbstractBag{BT, N}<:TagBlock{BT, N} end
 
 Yao.mat(::Type{T}, bag::AbstractBag{N}) where {T,N} = mat(T, content(bag))
-Yao.apply!(reg::AbstractRegister, bag::AbstractBag) = apply!(reg, content(bag))
+_apply!(reg::AbstractRegister, bag::AbstractBag) = _apply!(reg, content(bag))
 Yao.ishermitian(bag::AbstractBag) = ishermitian(content(bag))
 Yao.isreflexive(bag::AbstractBag) = isreflexive(content(bag))
 Yao.isunitary(bag::AbstractBag) = isunitary(content(bag))

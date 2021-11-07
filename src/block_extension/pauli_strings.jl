@@ -89,11 +89,10 @@ xgates(ps::PauliString{N}) where N = RepeatedBlock{N}(X, (findall(x->x isa XGate
 ygates(ps::PauliString{N}) where N = RepeatedBlock{N}(Y, (findall(x->x isa YGate, (ps.blocks...,))...,))
 zgates(ps::PauliString{N}) where N = RepeatedBlock{N}(Z, (findall(x->x isa ZGate, (ps.blocks...,))...,))
 
-function Yao.apply!(reg::AbstractRegister, ps::PauliString)
-    _check_size(reg, ps)
+function _apply!(reg::AbstractRegister, ps::PauliString)
     for pauligates in [xgates, ygates, zgates]
         blk = pauligates(ps)
-        apply!(reg, blk)
+        _apply!(reg, blk)
     end
     return reg
 end

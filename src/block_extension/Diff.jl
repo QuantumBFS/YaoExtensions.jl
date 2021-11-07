@@ -17,7 +17,7 @@ Yao.content(cb::Diff) = cb.content
 Yao.chcontent(cb::Diff, blk::AbstractBlock) = Diff(blk)
 Yao.YaoBlocks.PropertyTrait(::Diff) = Yao.PreserveAll()
 
-Yao.apply!(reg::AbstractRegister, db::Diff) = apply!(reg, content(db))
+_apply!(reg::AbstractRegister, db::Diff) = _apply!(reg, content(db))
 Yao.mat(::Type{T}, df::Diff) where T = mat(T, df.content)
 Base.adjoint(df::Diff) = chcontent(df, content(df)')
 

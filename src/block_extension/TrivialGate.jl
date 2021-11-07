@@ -22,7 +22,7 @@ EchoBlock(nbits::Int, sym::Symbol) = EchoBlock{nbits, typeof(stdout)}(sym, stdou
 EchoBlock(nbits::Int) = EchoBlock(nbits, :ECHO)
 EchoBlock() = nbits->EchoBlock(nbits)
 
-Yao.apply!(reg::AbstractRegister, ec::EchoBlock) = (println(ec.io, "apply!(::$(typeof(reg)), $(ec.sym))"); reg)
+_apply!(reg::AbstractRegister, ec::EchoBlock) = (println(ec.io, "apply!(::$(typeof(reg)), $(ec.sym))"); reg)
 Yao.mat(::Type{T}, ec::EchoBlock{N}) where {T,N} = (println(ec.io, "mat(::Type{$T}, $(ec.sym))"); IMatrix{1<<N}())
 Yao.ishermitian(ec::EchoBlock{N}) where N = (println(ec.io, "ishermitian($(ec.sym))"); true)
 Yao.isunitary(ec::EchoBlock{N}) where N = (println(ec.io, "isunitary($(ec.sym))"); true)
