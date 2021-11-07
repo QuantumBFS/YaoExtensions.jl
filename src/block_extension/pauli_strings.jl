@@ -102,7 +102,7 @@ function Yao.mat(::Type{T}, ps::PauliString) where T
 end
 
 function Yao.print_block(io::IO, x::PauliString)
-    printstyled(io, "PauliString"; bold=true, color=color(PauliString))
+    printstyled(io, "PauliString"; bold=true, color=Yao.color(PauliString))
 end
 
 Yao.color(::Type{T}) where {T <: PauliString} = :cyan
