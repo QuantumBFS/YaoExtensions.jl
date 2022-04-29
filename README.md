@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.com/QuantumBFS/YaoExtensions.jl.svg?branch=master)](https://travis-ci.com/QuantumBFS/YaoExtensions.jl)
 [![Codecov](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/QuantumBFS/YaoExtensions.jl)
 
-Extensions for [Yao](https://github.com/QuantumBFS/Yao.jl).
+Extensions for [Yao](https://github.com/QuantumBFS/Yao.jl). （Abandoned, circuits and hamiltonians are moved to Yao.EasyBuild)
 
 ## List of features
 #### Easy constructions
